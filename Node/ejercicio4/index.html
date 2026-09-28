@@ -5,11 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USANDO EXPRESS</title>
     <link rel = "stylesheet" href = "css/styles.css"> 
+    <script>
+        function recitar(){
+            const url = 'http://localhost:8080/recitar'
+            fetch(url).then(
+                response => response.json()
+        ).then(
+                data => {
+                    document.querySelector("#poema").innerHTML = data.text
+                }
+            
+            )
+        }
+    </script>
 
 </head>
 <body>
 
     <h1>JIJDASOIJFDOIASJDFJDFLÑASJDFLKASJFD</h1>
-    
+    <p id="poema">AQUI SE recibira el POEMA</p>
+    <script>
+        recitar();
+    </script>
 </body>
 </html>
