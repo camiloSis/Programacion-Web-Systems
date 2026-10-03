@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "nombre": "Capatinta Almanza",
+    "apellido": "Camilo Bladimir Alexander",
+    "codigo": "2021-12345",
+    "carrera": "Ingeniería de Sistemas",
+    "semestre": 5
+  },
+  {
+    "id": 2,
+    "nombre": "Mamani Nuñez",
+    "apellido": "Jeanpiere Javier",
+    "codigo": "2021-12346",
+    "carrera": "Ingeniería de Sistemas",
+    "semestre": 5
+  },
+  {
+    "id": 3,
+    "nombre": "Negron Ccalluchi",
+    "apellido": "Richard Antony",
+    "codigo": "2021-12347",
+    "carrera": "Ingeniería de Sistemas",
+    "semestre": 5
+  },
+  {
+    "id": 4,
+    "nombre": "Velo Poma",
+    "apellido": "Yamira Yesica",
+    "codigo": "2021-12348",
+    "carrera": "Ingeniería de Sistemas",
+    "semestre": 5
+  },
+  {
+    "id": 5,
+    "nombre": "Test",
+    "apellido": "User",
+    "codigo": "2024-00001",
+    "carrera": "Test",
+    "semestre": 1
+  }
+]

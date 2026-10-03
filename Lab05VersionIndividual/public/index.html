@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorio 05 - Node.js HTTP Server</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Laboratorio 05 — Node.js, npm y Servidor HTTP</h1>
+    <p class="subtitle">Versión Individual - Capatinta Almanza Camilo Bladimir Alexander</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Lista de Estudiantes</h2>
+      <button id="btnCargar" class="btn btn-primary">Cargar Estudiantes</button>
+      <div id="loading" class="hidden">Cargando...</div>
+      <div id="error" class="hidden error"></div>
+      <table id="tablaEstudiantes">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Código</th>
+            <th>Carrera</th>
+            <th>Semestre</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyEstudiantes"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Agregar Nuevo Estudiante</h2>
+      <form id="formEstudiante">
+        <div class="form-group">
+          <label for="nombre">Nombre:</label>
+          <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+          <label for="apellido">Apellido:</label>
+          <input type="text" id="apellido" name="apellido" required>
+        </div>
+        <div class="form-group">
+          <label for="codigo">Código:</label>
+          <input type="text" id="codigo" name="codigo" required>
+        </div>
+        <div class="form-group">
+          <label for="carrera">Carrera:</label>
+          <input type="text" id="carrera" name="carrera" required>
+        </div>
+        <div class="form-group">
+          <label for="semestre">Semestre:</label>
+          <input type="number" id="semestre" name="semestre" min="1" max="10" required>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar Estudiante</button>
+        <div id="formMsg" class="hidden"></div>
+      </form>
+    </section>
+
+    <section class="card info">
+      <h2>Endpoints Disponibles</h2>
+      <ul>
+        <li><strong>GET</strong> <code>/api/estudiantes</code> - Obtiene la lista de estudiantes</li>
+        <li><strong>POST</strong> <code>/api/estudiantes</code> - Crea un nuevo estudiante</li>
+      </ul>
+      <p>Servidor ejecutándose en: <code>http://localhost:3000</code></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Introducción al Desarrollo Web - 2026 - Semestre 1</p>
+  </footer>
+
+  <script>
+    const API_URL = '/api/estudiantes';
+    const tablaBody = document.getElementById('tbodyEstudiantes');
+    const btnCargar = document.getElementById('btnCargar');
+    const loading = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+    const form = document.getElementById('formEstudiante');
+    const formMsg = document.getElementById('formMsg');
+
+    async function cargarEstudiantes() {
+      loading.classList.remove('hidden');
+      errorDiv.classList.add('hidden');
+      tablaBody.innerHTML = '';
+
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const estudiantes = await response.json();
+        renderEstudiantes(estudiantes);
+      } catch (err) {
+        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.classList.remove('hidden');
+      } finally {
+        loading.classList.add('hidden');
+      }
+    }
+
+    function renderEstudiantes(estudiantes) {
+      if (estudiantes.length === 0) {
+        tablaBody.innerHTML = '<tr><td colspan="6">No hay estudiantes registrados</td></tr>';
+        return;
+      }
+      tablaBody.innerHTML = estudiantes.map(e => `
+        <tr>
+          <td>${e.id}</td>
+          <td>${e.nombre}</td>
+          <td>${e.apellido}</td>
+          <td>${e.codigo}</td>
+          <td>${e.carrera}</td>
+          <td>${e.semestre}</td>
+        </tr>
+      `).join('');
+    }
+
+    btnCargar.addEventListener('click', cargarEstudiantes);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formMsg.classList.add('hidden');
+      formMsg.classList.remove('success', 'error');
+
+      const formData = new FormData(form);
+      const nuevoEstudiante = {
+        nombre: formData.get('nombre'),
+        apellido: formData.get('apellido'),
+        codigo: formData.get('codigo'),
+        carrera: formData.get('carrera'),
+        semestre: parseInt(formData.get('semestre'), 10)
+      };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoEstudiante)
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const guardado = await response.json();
+        formMsg.textContent = `Estudiante guardado con ID: ${guardado.id}`;
+        formMsg.classList.add('success');
+        formMsg.classList.remove('hidden');
+        form.reset();
+        cargarEstudiantes();
+      } catch (err) {
+        formMsg.textContent = `Error: ${err.message}`;
+        formMsg.classList.add('error');
+        formMsg.classList.remove('hidden');
+      }
+    });
+
+    cargarEstudiantes();
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "lab05-nodejs-capatinta-almanza",
+  "version": "1.0.0",
+  "description": "Laboratorio 05 - Node.js, npm y servidor HTTP - Versión individual del estudiante Capatinta Almanza",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "http",
+    "fs",
+    "path",
+    "laboratorio",
+    "introduccion-desarrollo-web"
+  ],
+  "author": "Capatinta Almanza Camilo Bladimir Alexander",
+  "license": "MIT"
+}

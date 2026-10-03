@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas Universitarias</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gestor de Tareas Universitarias</h1>
+            <p class="subtitle">Laboratorio 04 - Desarrollo Web (IDWEB)</p>
+        </header>
+
+        <section class="form-section">
+            <h2>Registrar Nueva Tarea</h2>
+            <form id="task-form" novalidate>
+                <div class="form-group">
+                    <label for="titulo">Título de la tarea *</label>
+                    <input type="text" id="titulo" name="titulo" required placeholder="Ej: Entregar informe de laboratorio">
+                    <span class="error-message" id="error-titulo"></span>
+                </div>
+                <div class="form-group">
+                    <label for="curso">Curso *</label>
+                    <input type="text" id="curso" name="curso" required placeholder="Ej: Desarrollo Web">
+                    <span class="error-message" id="error-curso"></span>
+                </div>
+                <div class="form-group">
+                    <label for="fechaEntrega">Fecha de entrega *</label>
+                    <input type="date" id="fechaEntrega" name="fechaEntrega" required>
+                    <span class="error-message" id="error-fecha"></span>
+                </div>
+                <div id="alert-container" class="alert-container" role="alert" aria-live="polite"></div>
+                <button type="submit" class="btn btn-primary">Agregar Tarea</button>
+            </form>
+        </section>
+
+        <section class="filters-section">
+            <h2>Filtrar Tareas</h2>
+            <div class="filter-buttons">
+                <button type="button" class="filter-btn active" data-filter="all">Todas</button>
+                <button type="button" class="filter-btn" data-filter="pending">Pendientes</button>
+                <button type="button" class="filter-btn" data-filter="completed">Completadas</button>
+            </div>
+        </section>
+
+        <section class="tasks-section">
+            <h2>Lista de Tareas <span id="task-count">(0)</span></h2>
+            <div id="tasks-container" class="tasks-container">
+                <p class="empty-message">No hay tareas registradas. Agrega tu primera tarea.</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/logic.js"></script>
+</body>
+</html>
