@@ -1,0 +1,806 @@
+{
+  "info": {
+    "_postman_id": "lab06-api-cursos-collection",
+    "name": "Lab06 API Cursos",
+    "description": "Colección de pruebas para la API RESTful de gestión de Cursos Académicos - Laboratorio 06",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "lab06"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "cursoId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "GET",
+      "item": [
+        {
+          "name": "Listar todos los cursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Data es un array', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Array no está vacío (al menos 5 cursos iniciales)', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.length).to.be.gte(5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filtrar por créditos = 4",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos?creditos=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"],
+              "query": [
+                {
+                  "key": "creditos",
+                  "value": "4"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Todos los cursos tienen 4 créditos', function () {",
+                  "    const json = pm.response.json();",
+                  "    json.data.forEach(curso => {",
+                  "        pm.expect(curso.creditos).to.eql(4);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Hay al menos 3 cursos con 4 créditos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.length).to.be.gte(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filtrar por créditos sin coincidencias (creditos=5)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos?creditos=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"],
+              "query": [
+                {
+                  "key": "creditos",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Data es array vacío', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array').that.is.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener curso por ID existente (ID 1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "1"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Data contiene el curso con ID 1', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('id', 1);",
+                  "});",
+                  "",
+                  "pm.test('Curso tiene propiedades requeridas', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.all.keys('id', 'nombre', 'codigo', 'creditos');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener curso por ID inexistente (999)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica curso no encontrado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('no encontrado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "POST",
+      "item": [
+        {
+          "name": "Crear curso válido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Estructuras de Datos\",\n  \"codigo\": \"INF201\",\n  \"creditos\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Data contiene el curso creado con ID', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('id');",
+                  "    pm.expect(json.data.id).to.be.a('number');",
+                  "    pm.expect(json.data.nombre).to.eql('Estructuras de Datos');",
+                  "    pm.expect(json.data.codigo).to.eql('INF201');",
+                  "    pm.expect(json.data.creditos).to.eql(4);",
+                  "});",
+                  "",
+                  "pm.test('Guardar ID para pruebas posteriores', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('cursoId', json.data.id.toString());",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear curso con campos faltantes (falta nombre)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"INF202\",\n  \"creditos\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica campos obligatorios', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('obligatorios');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear curso con créditos inválidos (0)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Test Créditos Cero\",\n  \"codigo\": \"TST001\",\n  \"creditos\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica créditos inválidos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('créditos');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear curso con créditos negativos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Test Créditos Negativos\",\n  \"codigo\": \"TST002\",\n  \"creditos\": -2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica créditos inválidos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('créditos');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear curso con código duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Otro Curso\",\n  \"codigo\": \"MAT101\",\n  \"creditos\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica código duplicado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('ya existe');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PUT",
+      "item": [
+        {
+          "name": "Actualizar curso existente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Estructuras de Datos Avanzadas\",\n  \"codigo\": \"INF201\",\n  \"creditos\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/{{cursoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "{{cursoId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Data contiene el curso actualizado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.nombre).to.eql('Estructuras de Datos Avanzadas');",
+                  "    pm.expect(json.data.creditos).to.eql(5);",
+                  "    pm.expect(json.data.id).to.eql(parseInt(pm.collectionVariables.get('cursoId')));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar curso inexistente (ID 999)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Curso Inexistente\",\n  \"codigo\": \"TST999\",\n  \"creditos\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica curso no encontrado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('no encontrado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar con datos inválidos (créditos no entero)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Test\",\n  \"codigo\": \"TST003\",\n  \"creditos\": 3.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/{{cursoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "{{cursoId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica créditos inválidos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('créditos');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DELETE",
+      "item": [
+        {
+          "name": "Eliminar curso existente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/{{cursoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "{{cursoId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status success', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de confirmación', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('eliminado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar curso inexistente (ID 999)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos", "999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica curso no encontrado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('no encontrado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Errores y Middlewares",
+      "item": [
+        {
+          "name": "Ruta inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inexistente",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inexistente"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica ruta no encontrada', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('no encontrada');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "JSON mal formado (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Test\",\n  \"codigo\": \"TST\",\n  \"creditos\": 3\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica JSON mal formado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('mal formado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filtrar con creditos inválido (no número)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cursos?creditos=abc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cursos"],
+              "query": [
+                {
+                  "key": "creditos",
+                  "value": "abc"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code es 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica parámetro inválido', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('entero positivo');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "protocolProfileBehavior": {}
+}

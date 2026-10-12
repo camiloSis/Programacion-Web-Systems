@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Cursos Académicos - Lab 06</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Gestión de Cursos Académicos</h1>
+      <p class="subtitle">API RESTful con Express.js - Laboratorio 06</p>
+    </header>
+
+    <section class="card">
+      <h2>Filtro por Créditos</h2>
+      <div class="filter-group">
+        <label for="filtroCreditos">Filtrar por créditos:</label>
+        <select id="filtroCreditos" onchange="cargarCursos()">
+          <option value="">Todos los créditos</option>
+          <option value="2">2 créditos</option>
+          <option value="3">3 créditos</option>
+          <option value="4">4 créditos</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="formTitle">Crear Nuevo Curso</h2>
+      <form id="cursoForm" onsubmit="guardarCurso(event)">
+        <input type="hidden" id="cursoId" name="id">
+        <div class="form-group">
+          <label for="nombre">Nombre del curso *</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Ej: Matemáticas I">
+        </div>
+        <div class="form-group">
+          <label for="codigo">Código *</label>
+          <input type="text" id="codigo" name="codigo" required placeholder="Ej: MAT101">
+        </div>
+        <div class="form-group">
+          <label for="creditos">Créditos *</label>
+          <input type="number" id="creditos" name="creditos" required min="1" max="10" placeholder="Ej: 4">
+        </div>
+        <div class="form-actions">
+          <button type="submit" id="btnSubmit">Crear Curso</button>
+          <button type="button" id="btnCancel" onclick="resetForm()" style="display: none;">Cancelar</button>
+        </div>
+      </form>
+      <div id="formMessage" class="message"></div>
+    </section>
+
+    <section class="card">
+      <h2>Lista de Cursos</h2>
+      <div class="table-container">
+        <table id="cursosTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Código</th>
+              <th>Créditos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cursosBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="emptyMessage" class="empty-message" style="display: none;">No hay cursos para mostrar</div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
