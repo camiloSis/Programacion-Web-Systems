@@ -93,26 +93,26 @@ app.use(errorHandler);        // 6º: Último - captura next(err)
 ```mermaid
 sequenceDiagram
     participant C as Cliente
-    participant EJ as express.json()
-    participant LG as logger.js
+    participant EJ as express.json
+    participant LG as logger
     participant ST as express.static
     participant RT as cursoRoutes
     participant CT as cursoController
-    participant DT as data/cursos.js
+    participant DT as data/cursos
 
-    C->>EJ: HTTP Request (POST /api/cursos {...})
-    EJ->>EJ: Parsea body → req.body
-    EJ->>LG: next()
-    LG->>LG: inicio = Date.now()
-    LG->>ST: next()
-    ST->>RT: next() (ruta /api/*)
-    RT->>CT: crearCurso(req, res)
-    CT->>DT: cursos.push(nuevo)
+    C->>EJ: HTTP Request POST api/cursos
+    EJ->>EJ: Parsea body a req.body
+    EJ->>LG: next
+    LG->>LG: inicio = Date.now
+    LG->>ST: next
+    ST->>RT: next ruta api
+    RT->>CT: crearCurso req res
+    CT->>DT: cursos.push nuevo
     DT-->>CT: OK
-    CT->>CT: res.status(201).json({status:'success', data})
+    CT->>CT: res.status 201 json success data
     CT-->>RT: Respuesta enviada
     RT-->>LG: Respuesta enviada
-    LG->>LG: res.on('finish') → log "POST /api/cursos - 201 - 5 ms"
+    LG->>LG: res.on finish log POST api/cursos 201 5ms
     LG-->>C: HTTP Response 201
 ```
 
@@ -126,16 +126,16 @@ sequenceDiagram
 sequenceDiagram
     participant C as Cliente
     participant CT as cursoController.getCursos
-    participant DT as data/cursos.js
+    participant DT as data/cursos
 
-    C->>CT: GET /api/cursos?creditos=4
-    CT->>CT: req.query.creditos → Number()
-    alt creditos inválido
-        CT-->>C: 400 {status:'fail', message:'entero positivo'}
-    else válido
-        CT->>DT: cursos.filter(c => c.creditos === 4)
+    C->>CT: GET api/cursos creditos=4
+    CT->>CT: req.query.creditos a Number
+    alt creditos invalido
+        CT-->>C: 400 status fail message entero positivo
+    else valido
+        CT->>DT: cursos.filter creditos 4
         DT-->>CT: Array filtrado
-        CT-->>C: 200 {status:'success', data: [...]}
+        CT-->>C: 200 status success data array
     end
 ```
 **Uso:** `req.query` para filtros opcionales.
@@ -148,18 +148,18 @@ sequenceDiagram
 sequenceDiagram
     participant C as Cliente
     participant CT as cursoController.getCursoPorId
-    participant DT as data/cursos.js
+    participant DT as data/cursos
 
-    C->>CT: GET /api/cursos/1
-    CT->>CT: req.params.id → Number()
-    alt id no numérico
-        CT-->>C: 400 {status:'fail', message:'ID debe ser número'}
-    else válido
-        CT->>DT: cursos.find(c => c.id === 1)
+    C->>CT: GET api/cursos/1
+    CT->>CT: req.params.id a Number
+    alt id no numerico
+        CT-->>C: 400 status fail message ID invalido
+    else valido
+        CT->>DT: cursos.find por id
         alt no existe
-            CT-->>C: 404 {status:'fail', message:'Curso no encontrado'}
+            CT-->>C: 404 status fail message Curso no encontrado
         else existe
-            CT-->>C: 200 {status:'success', data: {...}}
+            CT-->>C: 200 status success data curso
         end
     end
 ```
@@ -173,17 +173,17 @@ sequenceDiagram
 sequenceDiagram
     participant C as Cliente
     participant CT as cursoController.crearCurso
-    participant DT as data/cursos.js
+    participant DT as data/cursos
 
-    C->>CT: POST /api/cursos {nombre, codigo, creditos}
-    CT->>CT: validarCurso(req.body)
-    alt validación falla
-        CT-->>C: 400/409 {status:'fail', message:'...'}
-    else válido
-        CT->>CT: maxId = Math.max(...cursos.map(c=>c.id))
-        CT->>DT: cursos.push({id: maxId+1, ...})
+    C->>CT: POST api/cursos body nombre codigo creditos
+    CT->>CT: validarCurso req.body
+    alt validacion falla
+        CT-->>C: 400/409 status fail message error
+    else valido
+        CT->>CT: maxId = Math.max cursos.map id
+        CT->>DT: cursos.push nuevo id maxId+1
         DT-->>CT: OK
-        CT-->>C: 201 {status:'success', data: nuevoCurso}
+        CT-->>C: 201 status success data nuevoCurso
     end
 ```
 **Uso:** `req.body` para datos del nuevo recurso.
@@ -196,23 +196,23 @@ sequenceDiagram
 sequenceDiagram
     participant C as Cliente
     participant CT as cursoController.actualizarCurso
-    participant DT as data/cursos.js
+    participant DT as data/cursos
 
-    C->>CT: PUT /api/cursos/7 {nombre, codigo, creditos}
-    CT->>CT: req.params.id → Number()
-    alt id no numérico
+    C->>CT: PUT api/cursos/7 body nombre codigo creditos
+    CT->>CT: req.params.id a Number
+    alt id no numerico
         CT-->>C: 400
     else
-        CT->>DT: cursos.findIndex(c => c.id === 7)
+        CT->>DT: cursos.findIndex id 7
         alt no existe
             CT-->>C: 404
         else existe
-            CT->>CT: validarCurso(req.body, excludeId=7)
-            alt validación falla
+            CT->>CT: validarCurso req.body excludeId 7
+            alt validacion falla
                 CT-->>C: 400/409
-            else válido
+            else valido
                 CT->>DT: cursos[7] = actualizado
-                CT-->>C: 200 {status:'success', data: actualizado}
+                CT-->>C: 200 status success data actualizado
             end
         end
     end
@@ -227,19 +227,19 @@ sequenceDiagram
 sequenceDiagram
     participant C as Cliente
     participant CT as cursoController.eliminarCurso
-    participant DT as data/cursos.js
+    participant DT as data/cursos
 
-    C->>CT: DELETE /api/cursos/7
-    CT->>CT: req.params.id → Number()
-    alt id no numérico
+    C->>CT: DELETE api/cursos/7
+    CT->>CT: req.params.id a Number
+    alt id no numerico
         CT-->>C: 400
     else
-        CT->>DT: index = findIndex(c => c.id === 7)
+        CT->>DT: index = findIndex id 7
         alt no existe
             CT-->>C: 404
         else existe
-            CT->>DT: cursoEliminado = cursos.splice(index, 1)[0]
-            CT-->>C: 200 {status:'success', message:'Curso X eliminado'}
+            CT->>DT: cursoEliminado = cursos.splice index 1
+            CT-->>C: 200 status success message Curso eliminado
         end
     end
 ```
@@ -253,26 +253,26 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[POST /api/cursos] --> B{¿nombre, codigo, creditos presentes?}
-    B -- No --> C[400: Campos obligatorios]
-    B -- Sí --> D{¿creditos es entero > 0?}
-    D -- No --> E[400: Créditos inválidos]
-    D -- Sí --> F{¿codigo ya existe?}
-    F -- Sí --> G[409: Código duplicado]
-    F -- No --> H[Crear curso: id = max(id)+1, push a array]
-    H --> I[201: {status:success, data:curso}]
+    A[POST api/cursos] --> B{Campos obligatorios}
+    B -- No --> C[400 Campos obligatorios]
+    B -- Si --> D{Creditos entero > 0}
+    D -- No --> E[400 Creditos invalidos]
+    D -- Si --> F{Codigo ya existe}
+    F -- Si --> G[409 Codigo duplicado]
+    F -- No --> H[Crear curso id max+1 push array]
+    H --> I[201 status success data curso]
 ```
 
 ### 4.2 GET `/api/cursos/:id` - Búsqueda
 
 ```mermaid
 flowchart TD
-    A[GET /api/cursos/:id] --> B{¿id es número válido?}
-    B -- No --> C[400: ID inválido]
-    B -- Sí --> D[Buscar en array: find(c => c.id === id)]
-    D --> E{¿Encontrado?}
-    E -- No --> F[404: Curso no encontrado]
-    E -- Sí --> G[200: {status:success, data:curso}]
+    A[GET api/cursos/id] --> B{ID numerico}
+    B -- No --> C[400 ID invalido]
+    B -- Si --> D[Buscar en array find por id]
+    D --> E{Encontrado}
+    E -- No --> F[404 Curso no encontrado]
+    E -- Si --> G[200 status success data curso]
 ```
 
 ---
@@ -283,20 +283,20 @@ flowchart TD
 sequenceDiagram
     participant C as Cliente
     participant CT as Controlador
-    participant MW_ERR as errorHandler (4 params)
-    participant LOG as Console.log
+    participant MW_ERR as errorHandler 4params
+    participant LOG as Console
 
-    CT->>CT: Error síncrono (throw) o next(err)
+    CT->>CT: Error sincrono throw o next(err)
     CT-->>MW_ERR: next(err)
-    MW_ERR->>LOG: console.error('Error no controlado:', err)
-    alt err instanceof SyntaxError && err.status===400
-        MW_ERR-->>C: 400 {status:'fail', message:'JSON mal formado'}
-    else err.status definido (ej. 409)
-        MW_ERR-->>C: err.status {status:'fail', message:err.message}
-    else (inesperado)
-        MW_ERR-->>C: 500 {status:'error', message:'Error interno del servidor'}
+    MW_ERR->>LOG: console.error Error no controlado
+    alt SyntaxError status 400
+        MW_ERR-->>C: 400 status fail message JSON mal formado
+    else err.status definido ej 409
+        MW_ERR-->>C: err.status status fail message err.message
+    else inesperado
+        MW_ERR-->>C: 500 status error message Error interno servidor
     end
-    Note right of MW_ERR: Nunca expone err.stack al cliente
+    Note right of MW_ERR: No expone err.stack al cliente
 ```
 
 ---
@@ -307,7 +307,7 @@ sequenceDiagram
 graph LR
     A[1. express.json] --> B[2. logger]
     B --> C[3. express.static]
-    C --> D[4. /api/cursos routes]
+    C --> D[4. api cursos routes]
     D --> E[5. notFoundHandler]
     E --> F[6. errorHandler]
 
