@@ -11,14 +11,14 @@
 graph TB
     subgraph CAPA_CLIENTE["CAPA CLIENTE"]
         UI[Frontend public/index.html]
-        API_CLIENT[Postman / curl / fetch]
+        API_CLIENT[Postman curl fetch]
     end
 
-    subgraph CAPA_MIDDLEWARES["CAPA MIDDLEWARES (app.js)"]
+    subgraph CAPA_MIDDLEWARES["CAPA MIDDLEWARES app.js"]
         direction TB
         MW1[1. express.json - Parse req.body]
         MW2[2. logger.js - Audit log + timing]
-        MW3[3. express.static - Sirve public/]
+        MW3[3. express.static - Sirve public]
     end
 
     subgraph CAPA_RUTAS["CAPA RUTAS"]
@@ -35,7 +35,7 @@ graph TB
 
     subgraph CAPA_ERRORES["CAPA MANEJO ERRORES"]
         MW_404[notFoundHandler - 404 JSON]
-        MW_ERR[errorHandler - 500 / err.status JSON]
+        MW_ERR[errorHandler - 500 err.status JSON]
     end
 
     %% Flujo REQUEST (cliente -> servidor)
@@ -45,7 +45,7 @@ graph TB
     %% Cadena de middlewares
     MW1 --> MW2
     MW2 --> MW3
-    MW3 -.->|/api/*| ROUTER
+    MW3 -.->|api routes| ROUTER
 
     %% Rutas -> Controlador -> Datos
     ROUTER --> CTRL
@@ -60,7 +60,7 @@ graph TB
 
     %% Manejo de errores
     ROUTER -.->|Ruta no existe| MW_404
-    CTRL -.->|throw / next(err)| MW_ERR
+    CTRL -.->|throw next(err)| MW_ERR
     MW_404 --> MW_ERR
     MW_ERR -.->|Error JSON| API_CLIENT
 ```
