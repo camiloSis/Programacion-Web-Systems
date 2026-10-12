@@ -9,36 +9,82 @@
 
 ```mermaid
 graph TB
-    subgraph Cliente["Cliente (Navegador / Postman / curl)"]
-        UI[Frontend public/index.html]
+    subgraph CAPA_CLIENTE["🌐 CAPA CLIENTE"]
+        UI[Frontend<br/>public/index.html]
         API_CLIENT[Postman / curl / fetch]
     end
 
-    subgraph Servidor["Servidor Express (app.js)"]
-        MW_JSON[express.json<br/>Parsea body JSON]
-        MW_LOGGER[logger.js<br/>Audit log + timing]
-        MW_STATIC[express.static<br/>Sirve public/]
-        ROUTER[cursoRoutes.js<br/>express.Router]
-        CTRL[cursoController.js<br/>Lógica de negocio]
+    subgraph CAPA_MIDDLEWARES["⚙️ CAPA MIDDLEWARES (app.js)"]
+        direction TB
+        MW1[1. express.json<br/>Parsea req.body]
+        MW2[2. logger.js<br/>Audit log + timing]
+        MW3[3. express.static<br/>Sirve public/]
+    end
+
+    subgraph CAPA_RUTAS["🛣️ CAPA RUTAS"]
+        ROUTER[cursoRoutes.js<br/>express.Router()]
+    end
+
+    subgraph CAPA_CONTROLADORES["🧠 CAPA CONTROLADORES"]
+        CTRL[cursoController.js<br/>Lógica de negocio + validaciones]
+    end
+
+    subgraph CAPA_DATOS["💾 CAPA DATOS"]
         DATA[(data/cursos.js<br/>Array en memoria)]
+    end
+
+    subgraph CAPA_ERRORES["⚠️ CAPA MANEJO ERRORES"]
         MW_404[notFoundHandler<br/>404 JSON]
         MW_ERR[errorHandler<br/>500 / err.status JSON]
     end
 
-    UI -->|HTTP| MW_STATIC
-    API_CLIENT -->|HTTP| MW_JSON
-    MW_JSON --> MW_LOGGER
-    MW_LOGGER --> MW_STATIC
-    MW_STATIC -.->|/api/*| ROUTER
+    %% Flujo REQUEST (cliente → servidor)
+    API_CLIENT -->|HTTP Request| MW1
+    UI -->|HTTP Request| MW3
+
+    %% Cadena de middlewares
+    MW1 --> MW2
+    MW2 --> MW3
+    MW3 -.->|/api/*| ROUTER
+
+    %% Rutas → Controlador → Datos
     ROUTER --> CTRL
     CTRL --> DATA
-    CTRL -->|Respuesta| MW_LOGGER
+
+    %% Flujo RESPONSE (servidor → cliente)
+    DATA -.->|Datos| CTRL
+    CTRL -.->|Respuesta JSON| ROUTER
+    ROUTER -.->|Respuesta| MW2
+    MW2 -.->|res.on('finish')| API_CLIENT
+    MW3 -.->|Archivos estáticos| UI
+
+    %% Manejo de errores
     ROUTER -.->|Ruta no existe| MW_404
     CTRL -.->|throw / next(err)| MW_ERR
     MW_404 --> MW_ERR
+    MW_ERR -.->|Error JSON| API_CLIENT
 ```
 
-**Explicación:** La petición entra por `express.json()` (parsea `req.body`), pasa al `logger` (registra inicio), luego a `express.static` (sirve frontend si la ruta es `/`), luego al router `/api/cursos` que delega al controlador. El controlador accede a `data/cursos.js`. La respuesta vuelve por el logger (evento `finish` imprime log final). Rutas no encontradas caen en `notFoundHandler` (404), errores no controlados en `errorHandler` (500 o `err.status`).
+**Explicación del flujo por capas:**
+
+| Capa | Archivos | Responsabilidad | Flujo |
+|------|----------|-----------------|-------|
+| **1. Cliente** | `public/index.html`, Postman, curl | Consume la API vía HTTP | Inicia petición |
+| **2. Middlewares** | `app.js` → `express.json()`, `logger.js`, `express.static` | Procesamiento transversal | `json` parsea body → `logger` mide tiempo → `static` sirve frontend |
+| **3. Rutas** | `routes/cursoRoutes.js` | Mapea verbos/URLs a controladores | `express.Router()` delega al controlador |
+| **4. Controladores** | `controllers/cursoController.js` | Lógica de negocio, validaciones, respuestas | Accede a datos, construye respuesta |
+| **5. Datos** | `data/cursos.js` | Persistencia en memoria | `push`, `splice`, `find`, `filter` |
+| **6. Errores** | `middlewares/errorHandler.js` | 404 (rutas) + 500/err.status (excepciones) | Captura al final de la cadena |
+
+**Orden crítico en `app.js`:**
+```javascript
+app.use(express.json());      // 1º: Parse body ANTES de controladores
+app.use(logger);              // 2º: Log TODAS las peticiones
+app.use(express.static('public')); // 3º: Frontend ANTES que 404
+app.use('/api/cursos', router);    // 4º: Rutas API
+app.use(notFoundHandler);     // 5º: 404 si ninguna ruta matchea
+app.use(errorHandler);        // 6º: Último - captura next(err)
+```
 
 ---
 
