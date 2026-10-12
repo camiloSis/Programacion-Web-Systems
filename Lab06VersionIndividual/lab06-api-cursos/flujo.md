@@ -9,36 +9,36 @@
 
 ```mermaid
 graph TB
-    subgraph CAPA_CLIENTE["🌐 CAPA CLIENTE"]
-        UI[Frontend<br/>public/index.html]
+    subgraph CAPA_CLIENTE["CAPA CLIENTE"]
+        UI[Frontend public/index.html]
         API_CLIENT[Postman / curl / fetch]
     end
 
-    subgraph CAPA_MIDDLEWARES["⚙️ CAPA MIDDLEWARES (app.js)"]
+    subgraph CAPA_MIDDLEWARES["CAPA MIDDLEWARES (app.js)"]
         direction TB
-        MW1[1. express.json<br/>Parsea req.body]
-        MW2[2. logger.js<br/>Audit log + timing]
-        MW3[3. express.static<br/>Sirve public/]
+        MW1[1. express.json - Parse req.body]
+        MW2[2. logger.js - Audit log + timing]
+        MW3[3. express.static - Sirve public/]
     end
 
-    subgraph CAPA_RUTAS["🛣️ CAPA RUTAS"]
-        ROUTER[cursoRoutes.js<br/>express.Router()]
+    subgraph CAPA_RUTAS["CAPA RUTAS"]
+        ROUTER[cursoRoutes.js - express.Router]
     end
 
-    subgraph CAPA_CONTROLADORES["🧠 CAPA CONTROLADORES"]
-        CTRL[cursoController.js<br/>Lógica de negocio + validaciones]
+    subgraph CAPA_CONTROLADORES["CAPA CONTROLADORES"]
+        CTRL[cursoController.js - Logica de negocio + validaciones]
     end
 
-    subgraph CAPA_DATOS["💾 CAPA DATOS"]
-        DATA[(data/cursos.js<br/>Array en memoria)]
+    subgraph CAPA_DATOS["CAPA DATOS"]
+        DATA[(data/cursos.js - Array en memoria)]
     end
 
-    subgraph CAPA_ERRORES["⚠️ CAPA MANEJO ERRORES"]
-        MW_404[notFoundHandler<br/>404 JSON]
-        MW_ERR[errorHandler<br/>500 / err.status JSON]
+    subgraph CAPA_ERRORES["CAPA MANEJO ERRORES"]
+        MW_404[notFoundHandler - 404 JSON]
+        MW_ERR[errorHandler - 500 / err.status JSON]
     end
 
-    %% Flujo REQUEST (cliente → servidor)
+    %% Flujo REQUEST (cliente -> servidor)
     API_CLIENT -->|HTTP Request| MW1
     UI -->|HTTP Request| MW3
 
@@ -47,16 +47,16 @@ graph TB
     MW2 --> MW3
     MW3 -.->|/api/*| ROUTER
 
-    %% Rutas → Controlador → Datos
+    %% Rutas -> Controlador -> Datos
     ROUTER --> CTRL
     CTRL --> DATA
 
-    %% Flujo RESPONSE (servidor → cliente)
+    %% Flujo RESPONSE (servidor -> cliente)
     DATA -.->|Datos| CTRL
     CTRL -.->|Respuesta JSON| ROUTER
     ROUTER -.->|Respuesta| MW2
-    MW2 -.->|res.on('finish')| API_CLIENT
-    MW3 -.->|Archivos estáticos| UI
+    MW2 -.->|res.on finish| API_CLIENT
+    MW3 -.->|Archivos estaticos| UI
 
     %% Manejo de errores
     ROUTER -.->|Ruta no existe| MW_404
@@ -253,13 +253,13 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[POST /api/cursos] --> B{¿nombre, codigo,<br/>creditos presentes?}
+    A[POST /api/cursos] --> B{¿nombre, codigo, creditos presentes?}
     B -- No --> C[400: Campos obligatorios]
     B -- Sí --> D{¿creditos es entero > 0?}
     D -- No --> E[400: Créditos inválidos]
     D -- Sí --> F{¿codigo ya existe?}
     F -- Sí --> G[409: Código duplicado]
-    F -- No --> H[Crear curso<br/>id = max(id)+1<br/>push a array]
+    F -- No --> H[Crear curso: id = max(id)+1, push a array]
     H --> I[201: {status:success, data:curso}]
 ```
 
@@ -269,7 +269,7 @@ flowchart TD
 flowchart TD
     A[GET /api/cursos/:id] --> B{¿id es número válido?}
     B -- No --> C[400: ID inválido]
-    B -- Sí --> D[Buscar en array<br/>find(c => c.id === id)]
+    B -- Sí --> D[Buscar en array: find(c => c.id === id)]
     D --> E{¿Encontrado?}
     E -- No --> F[404: Curso no encontrado]
     E -- Sí --> G[200: {status:success, data:curso}]
@@ -283,7 +283,7 @@ flowchart TD
 sequenceDiagram
     participant C as Cliente
     participant CT as Controlador
-    participant MW_ERR as errorHandler<br/>(4 params)
+    participant MW_ERR as errorHandler (4 params)
     participant LOG as Console.log
 
     CT->>CT: Error síncrono (throw) o next(err)
