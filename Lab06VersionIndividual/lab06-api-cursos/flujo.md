@@ -39,30 +39,30 @@ graph TB
     end
 
     %% Flujo REQUEST (cliente -> servidor)
-    API_CLIENT -->|HTTP Request| MW1
-    UI -->|HTTP Request| MW3
+    API_CLIENT --> MW1
+    UI --> MW3
 
     %% Cadena de middlewares
     MW1 --> MW2
     MW2 --> MW3
-    MW3 -.->|api routes| ROUTER
+    MW3 --> ROUTER
 
     %% Rutas -> Controlador -> Datos
     ROUTER --> CTRL
     CTRL --> DATA
 
     %% Flujo RESPONSE (servidor -> cliente)
-    DATA -.->|Datos| CTRL
-    CTRL -.->|Respuesta JSON| ROUTER
-    ROUTER -.->|Respuesta| MW2
-    MW2 -.->|res.on finish| API_CLIENT
-    MW3 -.->|Archivos estaticos| UI
+    DATA --> CTRL
+    CTRL --> ROUTER
+    ROUTER --> MW2
+    MW2 --> API_CLIENT
+    MW3 --> UI
 
     %% Manejo de errores
-    ROUTER -.->|Ruta no existe| MW_404
-    CTRL -.->|throw next(err)| MW_ERR
+    ROUTER --> MW_404
+    CTRL --> MW_ERR
     MW_404 --> MW_ERR
-    MW_ERR -.->|Error JSON| API_CLIENT
+    MW_ERR --> API_CLIENT
 ```
 
 **Explicación del flujo por capas:**
