@@ -1,0 +1,2 @@
+Resumen: repaso de grafos, formas de representarlos, MST (Borůvka, Jarník/Prim, Kruskal con Union-Find) y caminos más cortos (Dijkstra, Floyd). Incluye pseudocódigo, trazas en el grafo de ejemplo, correctitud y análisis de complejidad.
+Tarjetas: 38, por tema.
