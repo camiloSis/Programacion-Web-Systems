@@ -1,11 +1,856 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>g</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programación dinámica · Resumen, método y tarjetas</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">UNSA · Análisis y Diseño de Algoritmos · CONT2 · Tema 5</p>
+    <h1>Programación dinámica</h1>
+    <p class="subtitle">Método de resolución: etapas, estados, memoización y SRTBOT</p>
+    <p class="meta">Prof. Alexander J. Benavides<br>Escuela Profesional de Ingeniería de Sistemas · Septiembre 2024</p>
+    <div class="warning">
+      <b>Advertencia del curso:</b> tome apuntes; estas láminas no necesariamente tienen sentido fuera del aula.
+      <b>Recuerde:</b> lo más importante es entender los métodos; traducir a C++ es secundario.
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Secciones">
+  <a href="#intro">Inicio</a>
+  <a href="#pd">1 ¿Qué es PD?</a>
+  <a href="#manual">2 Método manual</a>
+  <a href="#memo">3 Memo + SRTBOT</a>
+  <a href="#fib">4 Fibonacci</a>
+  <a href="#k01">5 Mochila 0/1</a>
+  <a href="#kil">6 Mochila ilimitada</a>
+  <a href="#receta">7 Receta</a>
+  <a href="#chuleta">Chuleta</a>
+  <a href="#mnemo">Trucos</a>
+  <a href="#tools">Herramientas</a>
+  <a href="#tarjetas" class="cta">Tarjetas</a>
+  <a href="#quiz" class="cta">Quiz</a>
+</nav>
+
+<main>
+
+<!-- ===================== INICIO ===================== -->
+<section id="intro">
+  <h2><span class="num">0</span> Presentación y mapa del tema</h2>
+  <p class="lead">La programación dinámica (PD) resuelve un problema grande <b>descomponiéndolo en subproblemas, resolviendo cada uno una sola vez y guardando el resultado</b> para reutilizarlo. Este tema se centra en <b>cómo se resuelve un problema de PD</b>: por tablas a mano y por recursión con memoización.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Objetivos de aprendizaje</h3>
+      <p>Al terminar, el estudiante será capaz de:</p>
+      <ol>
+        <li>Entender el método genérico de programación dinámica.</li>
+        <li>Listar y describir sus componentes básicos: estados, relaciones recursivas, principio de optimalidad, memoización…</li>
+        <li>Utilizar el método para resolver manualmente (en papel) problemas con múltiples estados.</li>
+        <li>Diseñar funciones recursivas y modificarlas para que almacenen y reutilicen resultados de problemas pequeños en la solución de problemas cada vez más grandes.</li>
+      </ol>
+    </div>
+    <div class="box accent-b">
+      <h3>Contenido (y orden de esta página)</h3>
+      <ul>
+        <li>¿Qué es la PD? (problema de la diligencia, optimalidad, componentes)</li>
+        <li>Solución manual con ecuaciones recursivas y tablas de decisión</li>
+        <li>Memoización + recursividad con SRTBOT</li>
+        <li>Fibonacci sin / con PD</li>
+        <li>Mochila 0/1 sin / con PD</li>
+        <li>Mochila ilimitada sin / con PD</li>
+        <li><b>★ Receta de resolución</b> (síntesis del método, la sección clave de esta página)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>Cómo estudiar con esta página (ruta sugerida)</h3>
+    <ol>
+      <li><b>Lee</b> las secciones 1–3 una vez; luego abre las <a href="#tools">herramientas</a> y resuelve la diligencia paso a paso.</li>
+      <li>Haz la <b>mochila</b> (secciones 5–6) <i>a mano en papel</i> y compara con la calculadora. Cambia costos y pesos para inventar tus propios casos.</li>
+      <li>Memoriza la <a href="#receta">receta</a> y la <a href="#chuleta">chuleta</a>.</li>
+      <li>Autoevalúate con las <a href="#tarjetas">tarjetas</a> (marca “Lo sé / Repasar”) y el <a href="#quiz">quiz</a>.</li>
+    </ol>
+  </div>
+
+  <details class="box refs">
+    <summary>Material de estudio de la lámina</summary>
+    <ul>
+      <li>Hillier, F. S. &amp; Lieberman, G. J. (2010). <i>Introducción a la Investigación de Operaciones</i> (9ª Ed.). McGraw Hill. Secs. 10.1–10.3 <span class="small">(citado como [HL10])</span></li>
+      <li>Wagner, H.M. (1969). <i>Principles of Operations Research, with Applications to Managerial Decisions</i>. Prentice-Hall. Sec. 8.2, p. 256–261 <span class="small">([Wag69])</span></li>
+      <li>Levitin, A. (2012). <i>Introduction to the Design &amp; Analysis of Algorithms</i> (3rd Ed). Pearson. C.8 <span class="small">([Lev12])</span></li>
+      <li>Goodrich, M.T. &amp; Tamassia, R. (2015). <i>Algorithm Design and Applications</i>. John Wiley. C.12 <span class="small">([GT15])</span></li>
+      <li>Cormen, T.H., Leiserson, C.E., Rivest, R.L., &amp; Stein, C. (2022). <i>Introduction to Algorithms</i> (4th Ed). MIT Press. C.14 <span class="small">([CLRS22])</span></li>
+      <li><b>MIT OpenCourseWare:</b> 6.00 (2008), lecciones 12 y 13; 6.006 (primavera 2020), lección 15.</li>
+      <li>Bellman, R. (1952). On the theory of dynamic programming. <i>Proc. Natl. Acad. Sci.</i>, 38(8), 716–719. · Bellman, R. (1957). <i>Dynamic programming</i>. Princeton University Press. · Bellman, R. (1984). <i>Eye of the Hurricane</i>. World Scientific, p.159.</li>
+      <li>Michie, D. (1968). “Memo” functions and machine learning. <i>Nature</i>, 218(5136), 19–22. · Sigler, L. (2002). <i>Fibonacci’s Liber Abaci</i>. Springer.</li>
+    </ul>
+  </details>
+</section>
+
+<!-- ===================== 1 QUE ES PD ===================== -->
+<section id="pd">
+  <h2><span class="num">1</span> ¿Qué es la programación dinámica?</h2>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>¿Por qué “programación dinámica”?</h3>
+      <p>Bellman quería ocultar los términos <i>“mathematical”</i> y <i>“research”</i> del Secretario de Defensa (SecDef). El nombre es casi un disfraz, pero cada palabra tiene sentido:</p>
+      <dl class="defs">
+        <dt>Programación</dt>
+        <dd>Planificación, calendarización, organización de recursos, eventos o decisiones; <b>sin computador</b>.</dd>
+        <dt>Dinámica</dt>
+        <dd>Las decisiones o eventos son <b>multi-estado</b>, <b>sucesivos</b> (varían) a través del tiempo…</dd>
+      </dl>
+      <p><b>Definición operativa:</b> técnica matemática para optimizar <b>procesos de decisión con múltiples estados</b>.</p>
+    </div>
+    <div class="box accent-green">
+      <h3>Dos ideas para llevarse</h3>
+      <ul>
+        <li><b>Optimalidad:</b> la solución óptima del problema grande contiene soluciones óptimas de subproblemas.</li>
+        <li><b>Superposición:</b> los subproblemas se repiten, así que conviene <b>guardar</b> su resultado (memoizar).</li>
+      </ul>
+      <p class="formula">PD = recursividad + memoización + elegir la opción más beneficiosa</p>
+    </div>
+  </div>
+
+  <h3>Ejemplo guía: el problema de la diligencia [HL10, Sec. 10.1]</h3>
+  <div class="grid two">
+    <div class="box">
+      <p>Propuesto por [Wag69]. El Sr. Mark Off viajará de <b>NY a SF</b> en busca de fortuna en el salvaje oeste. Como las rutas son <i>muy</i> peligrosas, decide comprar <b>seguros de vida</b>; el costo de cada seguro depende de la seguridad de cada ruta.</p>
+      <p>¿Cuáles son las rutas más seguras? ¿Cuál <b>ruta completa minimiza los costos</b>? Podríamos revisar todas las rutas en un <b>árbol de decisión</b>: son <b>3 · 3 · 2 · 1 = 18</b>.</p>
+      <p>Hay 5 etapas: <b>A</b> (etapa 1) · <b>B, C, D</b> (2) · <b>E, F, G</b> (3) · <b>H, I</b> (4) · <b>J</b> (5). Puedes verlo dibujado en la <a href="#tools">herramienta 1</a>.</p>
+    </div>
+    <div class="box">
+      <h4>Costos de cada tramo</h4>
+      <div class="tablewrap"><table class="tbl">
+        <tr><th>Desde → hasta</th><th>Costos</th></tr>
+        <tr><td>A → B · C · D</td><td>2 · 4 · 3</td></tr>
+        <tr><td>B → E · F · G</td><td>7 · 4 · 6</td></tr>
+        <tr><td>C → E · F · G</td><td>3 · 2 · 4</td></tr>
+        <tr><td>D → E · F · G</td><td>4 · 1 · 5</td></tr>
+        <tr><td>E → H · I</td><td>1 · 4</td></tr>
+        <tr><td>F → H · I</td><td>6 · 3</td></tr>
+        <tr><td>G → H · I</td><td>3 · 3</td></tr>
+        <tr><td>H → J</td><td>3</td></tr>
+        <tr><td>I → J</td><td>4</td></tr>
+      </table></div>
+    </div>
+  </div>
+
+  <h3>Principio de optimalidad y subproblemas superpuestos</h3>
+  <div class="grid two">
+    <div class="box accent-a">
+      <h4>Principio de optimalidad [GT15, CLRS22]</h4>
+      <p>La PD requiere que la estructura del problema cumpla con él. Las soluciones óptimas de los subproblemas pequeños:</p>
+      <ul>
+        <li>⊕ <b>forman parte</b> de la solución óptima del problema grande → <b>subestructura óptima</b>;</li>
+        <li>⊕ se pueden encontrar <b>sin necesidad de revisar el problema grande</b> → <b>independencia</b>.</li>
+      </ul>
+      <p>Esto permite utilizar <b>recursividad</b>.</p>
+      <p><b>En la diligencia:</b></p>
+      <ul>
+        <li><i>Independencia:</i> la decisión óptima de F a J no depende de cómo se llega a F.</li>
+        <li><i>Subestructura:</i> con los óptimos de H e I calculo los de E, F y G; con ellos, los de B, C y D; y con ellos toda la ruta.</li>
+      </ul>
+    </div>
+    <div class="box accent-b">
+      <h4>Subproblemas superpuestos</h4>
+      <p>La PD es eficiente <b>sólo cuando los subproblemas pequeños se calculan repetidas veces</b>. Esto permite utilizar <b>memoización</b>.</p>
+      <p><b>En la diligencia:</b> el árbol de decisión de las 18 rutas repite una y otra vez los mismos subárboles (por ejemplo, el de E, F y G aparece bajo B, bajo C y bajo D). Calcular cada uno una sola vez es la ganancia.</p>
+    </div>
+  </div>
+
+  <h3>Componentes básicos de la PD [HL10, Sec. 10.2]</h3>
+  <div class="grid four">
+    <div class="box chip c1"><b>1 · Etapa</b><br>Parte del problema donde se puede tomar una decisión. Cada etapa tiene un conjunto de estados asociados.</div>
+    <div class="box chip c2"><b>2 · Estado</b><br>Punto de decisión, donde se fija el valor de cada decisión.</div>
+    <div class="box chip c3"><b>3 · Asociaciones</b><br>Relaciones recursivas que llevan de un estado a otro.</div>
+    <div class="box chip c4"><b>4 · Optimalidad</b><br>Subproblemas independientes ⊎ subestructura óptima.</div>
+  </div>
+
+  <h3>El método, en pocas palabras</h3>
+  <div class="grid two">
+    <div class="box accent-a">
+      <h4>Pasos del método de PD [HL10]</h4>
+      <ol>
+        <li>Formular el problema como <b>ecuaciones recursivas</b>.</li>
+        <li><b>Resolver los subproblemas y guardar</b> resultados.</li>
+        <li>Resolver los problemas mayores <b>reutilizando</b> las soluciones de problemas menores.</li>
+      </ol>
+    </div>
+    <div class="box accent-b">
+      <h4>Programación dinámica [Lev12]</h4>
+      <p>Si el problema es tomar una serie de decisiones, PD consiste en:</p>
+      <ol>
+        <li>Formular el problema inicial usando subproblemas recursivos más pequeños.</li>
+        <li>Resolver los subproblemas pequeños (recursivamente o con otros métodos) y <b>guardar</b> estas soluciones parciales: <b>MEMOIZACIÓN</b>.</li>
+        <li>Usar las soluciones guardadas, junto con la opción más beneficiosa, para resolver subproblemas cada vez más grandes (hasta el problema inicial).</li>
+      </ol>
+      <p class="formula">Reduce y Conquista (RECURSIVO) ⊎ MEMOIZACIÓN ⊎ Algoritmos Golosos</p>
+    </div>
+  </div>
+  <div class="box">
+    <h4>De arriba hacia abajo o de abajo hacia arriba</h4>
+    <p>La PD es <b>naturalmente recursiva, de arriba hacia abajo</b>, pero también puede implementarse de forma <b>iterativa, de abajo hacia arriba</b>:</p>
+    <ul>
+      <li>⊖ <b>Iterativamente</b> calcula <i>todas</i> las soluciones parciales.</li>
+      <li>⊕ <b>Recursivamente</b> calcula <i>solamente</i> las soluciones parciales necesarias.</li>
+    </ul>
+    <p class="small">La lámina lo ilustra con F(n) = F(n−2) + 2, F(0)=0, F(1)=1: para F(n) basta recorrer n, n−2, n−4… (mis palabras: el recorrido iterativo llenaría también los valores que nunca se consultan).</p>
+  </div>
+</section>
+
+<!-- ===================== 2 METODO MANUAL ===================== -->
+<section id="manual">
+  <h2><span class="num">2</span> Solución manual: ecuaciones recursivas y tabla de decisión</h2>
+  <p class="lead">Es el método “en papel”: se divide en etapas, se escribe una tabla por etapa y se resuelve <b>de la última etapa hacia la primera</b>, como quien conoce primero el último tramo del viaje.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Notación [HL10, Sec. 10.2]</h3>
+      <dl class="defs">
+        <dt>N</dt><dd>número de etapas.</dd>
+        <dt>n ∈ {1, 2, …, N}</dt><dd>etapa actual; <b>n+1</b> es la etapa ya resuelta.</dd>
+        <dt>s_n</dt><dd>un estado de la etapa actual n; <b>s_{n+1}</b>: estado en la etapa n+1.</dd>
+        <dt>x_n</dt><dd>decisión que asocia dos estados.</dd>
+        <dt>c(s_n, x_n)</dt><dd>ganancia (costo) directa en el estado s_n al tomar la decisión x_n.</dd>
+        <dt>f_n(s_n, x_n)</dt><dd>ganancia total en s_n al tomar x_n.</dd>
+        <dt>f*_n(s_n)</dt><dd>valor óptimo para el estado s_n.</dd>
+        <dt>x*_n</dt><dd>decisión óptima para la etapa n.</dd>
+      </dl>
+    </div>
+    <div class="box">
+      <h3>Las dos ecuaciones del método</h3>
+      <p class="formula">f_n(s_n, x_n) = c(s_n, x_n) + f*_{n+1}(s_{n+1})</p>
+      <p class="formula">f*_n(s_n) = mín_{x_n} { f_n(s_n, x_n) } = f_n(s_n, x*_n)</p>
+      <p><b>Ejemplo de la lámina:</b> etapa 3, estado F, decisión F→H: costo directo 6 y f*₄(H) = 3, entonces f₃(F, H) = 6 + 3.</p>
+      <p class="small">Si el problema es de <i>maximizar</i> (mochila), se usa máx en lugar de mín.</p>
+      <h4>Tabla de decisión</h4>
+      <div class="tablewrap"><table class="tbl">
+        <tr><th>s_n \ x_n</th><th>x₁</th><th>x₂</th><th>…</th><th>x_n</th><th>f*_n(s_n)</th><th>x*_n</th></tr>
+        <tr><td>s₁</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>s₂ … s_n</td><td colspan="4">f_n(s_n, x_n) = c + f*_{n+1}</td><td>mejor valor</td><td>decisión</td></tr>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Diligencia resuelta, etapa por etapa</h3>
+    <p>Cada celda es “costo del tramo + f* del estado siguiente”. En <b>negrita</b> el mínimo.</p>
+    <div class="grid two">
+      <div>
+        <p><b>Etapa 5</b> resuelta: f*₅(J) = 0.</p>
+        <p><b>Etapa 4</b> (s₄ → J):</p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₄</th><th>x = J</th><th>f*₄</th><th>x*₄</th></tr>
+          <tr><td>H</td><td class="best">3+0</td><td>3</td><td>J</td></tr>
+          <tr><td>I</td><td class="best">4+0</td><td>4</td><td>J</td></tr>
+        </table></div>
+        <p><b>Etapa 3</b> (s₃ → H o I):</p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₃</th><th>H</th><th>I</th><th>f*₃</th><th>x*₃</th></tr>
+          <tr><td>E</td><td class="best">1+3</td><td>4+4</td><td>4</td><td>H</td></tr>
+          <tr><td>F</td><td>6+3</td><td class="best">3+4</td><td>7</td><td>I</td></tr>
+          <tr><td>G</td><td class="best">3+3</td><td>3+4</td><td>6</td><td>H</td></tr>
+        </table></div>
+      </div>
+      <div>
+        <p><b>Etapa 2</b> (s₂ → E, F o G):</p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₂</th><th>E</th><th>F</th><th>G</th><th>f*₂</th><th>x*₂</th></tr>
+          <tr><td>B</td><td class="best">7+4</td><td class="best">4+7</td><td>6+6</td><td>11</td><td>E o F</td></tr>
+          <tr><td>C</td><td class="best">3+4</td><td>2+7</td><td>4+6</td><td>7</td><td>E</td></tr>
+          <tr><td>D</td><td class="best">4+4</td><td class="best">1+7</td><td>5+6</td><td>8</td><td>E o F</td></tr>
+        </table></div>
+        <p><b>Etapa 1</b> (s₁ → B, C o D):</p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₁</th><th>B</th><th>C</th><th>D</th><th>f*₁</th><th>x*₁</th></tr>
+          <tr><td>A</td><td>2+11</td><td class="best">4+7</td><td class="best">3+8</td><td>11</td><td>C o D</td></tr>
+        </table></div>
+      </div>
+    </div>
+    <p><b>Reconstrucción hacia adelante</b> siguiendo x*: desde A, x*₁ = C o D.</p>
+    <ul>
+      <li>A → C → E → H → J: 4 + 3 + 1 + 3 = <b>11</b></li>
+      <li>A → D → E → H → J: 3 + 4 + 1 + 3 = <b>11</b></li>
+      <li>A → D → F → I → J: 3 + 1 + 3 + 4 = <b>11</b></li>
+    </ul>
+    <p class="small">Resumen de f* por vértice: A 11 · B 11 · C 7 · D 8 · E 4 · F 7 · G 6 · H 3 · I 4 · J 0. Y se evaluó cada enlace una vez (20 tramos) en lugar de las 18 rutas completas (observación mía).</p>
+  </div>
+
+  <div class="box accent-b">
+    <h3>Cuestionario para un problema nuevo [Wag69, Sec. 8.2, p. 261]</h3>
+    <ol>
+      <li>¿Cuáles son las <b>variables de decisión</b>?</li>
+      <li>¿Cuál es el <b>criterio o función objetivo</b> para determinar una decisión óptima?</li>
+      <li>¿Cuáles son las <b>etapas independientes</b> que dividen adecuadamente el problema?</li>
+      <li>¿Cuáles son los <b>estados</b> dentro de cada etapa que representan al problema?</li>
+      <li>¿Cómo influyen las <b>restricciones</b> a los estados del problema y a los valores factibles?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===================== 3 MEMO + SRTBOT ===================== -->
+<section id="memo">
+  <h2><span class="num">3</span> Memoización + recursividad con SRTBOT</h2>
+  <p class="lead">Ahora pasamos del papel al código: una función recursiva que <b>guarda lo que calcula</b>.</p>
+
+  <div class="box accent-a">
+    <h3>Memoización: guardar para ser recordado</h3>
+    <p>Latín <i>memorandum</i> → inglés <i>memo</i> → <i>memoize</i> → <i>memoization</i> (Michie, 1968).</p>
+    <div class="grid two">
+<pre class="algo">factorial(n)           Entrada: n ∈ ℤ≥0
+1: if n = 0 then
+2:   return 1
+3: else
+4:   return n * factorial(n−1)</pre>
+<pre class="algo">factorialMEMO(n)
+1: if n = 0 then
+2:   return 1
+3: else
+4:   if memo[n] is undefined then
+5:     memo[n] = n * factorialMEMO(n−1)
+6:   return memo[n]</pre>
+    </div>
+    <p>Ambos algoritmos son O(n)… pero <b>memoizar amortiza el tiempo</b>: la segunda vez que pides 8! o 10!, ya tienes lo hecho (la lámina propone comparar cuánto cuesta calcular 6!, 8!, 10!). Memoizar es <b>muy eficiente cuando hay subproblemas superpuestos</b>.</p>
+  </div>
+
+  <div class="box">
+    <h3>SRTBOT: diseño de algoritmos recursivos</h3>
+    <div class="tablewrap"><table class="tbl cheat srtbot">
+      <tr><th>Letra</th><th>Qué hacer</th></tr>
+      <tr><td>S · Subproblema</td><td>Definir los subproblemas en que se divide el problema (los <b>vértices</b>).</td></tr>
+      <tr><td>R · Relacionar</td><td>Definir las relaciones recursivas entre los subproblemas (los <b>enlaces</b>).</td></tr>
+      <tr><td>T · Topología</td><td>Garantizar que es un <b>grafo dirigido acíclico (DAG)</b>. Verificar la <b>subestructura óptima</b> y los <b>subproblemas superpuestos</b>.</td></tr>
+      <tr><td>B · Básico</td><td>Establecer la solución de los subproblemas mínimos (<b>casos base</b>).</td></tr>
+      <tr><td>O · Original</td><td>Resolver subproblemas cada vez más grandes, <i>sin o con memoización</i> (guardando soluciones para reutilizarlas), hasta resolver el problema original.</td></tr>
+      <tr><td>T · Tiempo</td><td>Analizar el tiempo de ejecución para resolver el problema original.</td></tr>
+    </table></div>
+    <p class="small">Fuente citada en la lámina: MIT OCW 6.006 (lección 15).</p>
+  </div>
+</section>
+
+<!-- ===================== 4 FIBONACCI ===================== -->
+<section id="fib">
+  <h2><span class="num">4</span> Números de Fibonacci sin / con PD</h2>
+  <p class="lead">El ejemplo más simple para ver el efecto de memoizar: mismo problema, de <b>exponencial a lineal</b>.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Definición</h3>
+      <p>Fibonacci (1202), <i>Liber abaci</i> (Sigler, 2002): introduce los dígitos hindúes 1…9, el 0, álgebra, algoritmos… La secuencia modela la reproducción de conejos.</p>
+      <p class="formula">f(0) = 0 · f(1) = 1 · f(n) = f(n−1) + f(n−2)</p>
+      <div class="tablewrap"><table class="tbl">
+        <tr><th>n</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td></tr>
+        <tr><th>f(n)</th><td>0</td><td>1</td><td>1</td><td>2</td><td>3</td><td>5</td><td>8</td><td>13</td><td>21</td><td>34</td><td>55</td><td>89</td><td>144</td><td>233</td><td>377</td><td>610</td></tr>
+      </table></div>
+      <p><b>Reto de la lámina:</b> calcular f(46) y f(92). Con la <a href="#tools">herramienta 3</a>: f(46) = 1 836 311 903 y f(92) = 7 540 113 804 746 346 429 (f(47) ya no cabe en 32 bits).</p>
+      <p><b>Antes de aplicar PD</b>, verifica que existen el principio de optimalidad y los problemas superpuestos.</p>
+    </div>
+    <div class="box">
+      <h3>Fibonacci con SRTBOT</h3>
+      <div class="tablewrap"><table class="tbl cheat srtbot">
+        <tr><td>S</td><td>Encuentre f(i) para i ∈ ℤ≥0</td></tr>
+        <tr><td>R</td><td>f(i) = f(i−1) + f(i−2)</td></tr>
+        <tr><td>T</td><td>DAG: cada i apunta a i−1 e i−2 (n → n−1 → … → 1 → 0)</td></tr>
+        <tr><td>B</td><td>f(i) = i para i ∈ {0, 1}</td></tr>
+        <tr><td>O</td><td>Implementar primero sin memoización y después con memoización</td></tr>
+        <tr><td>T</td><td>Sin memo: T_f(n) ∈ Θ(φⁿ) · Con memo: T_f(n) ∈ Θ(n)</td></tr>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-red">
+      <h3>Sin memoización</h3>
+<pre class="algo">F(n)    Entrada: n ∈ ℤ≥0
+1: if n = 0 or n = 1 then
+2:   return n
+3: else
+4:   return F(n−1) + F(n−2)</pre>
+      <p>El árbol de llamadas repite subproblemas (F₃ aparece varias veces, F₂ muchas más…). Recurrencia de tiempo:</p>
+      <p class="formula">T_f(n) = T_f(n−1) + T_f(n−2) + c, con T_f(0) = T_f(1) = c₀</p>
+      <p>Para acotarla se usan dos recurrencias más simples:</p>
+      <ul>
+        <li><b>Límite inferior:</b> li(n) = 2·li(n−2) (porque T(n−1) ≥ T(n−2)).</li>
+        <li><b>Límite superior:</b> ls(n) = 2·ls(n−1) (porque T(n−2) ≤ T(n−1)).</li>
+      </ul>
+    </div>
+    <div class="box accent-green">
+      <h3>Con memoización</h3>
+<pre class="algo">FM(n)
+1: if n = 0 or n = 1 then
+2:   return n
+3: else
+4:   if M[n] is undefined then
+5:     M[n] = FM(n−1) + FM(n−2)
+6:   return M[n]</pre>
+      <p>Cada f(i) se calcula <b>una sola vez</b> y las siguientes consultas leen M[i]. Tiempo y espacio: <b>Θ(n)</b>.</p>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-b">
+      <h3>Límite inferior (desenrollando)</h3>
+<pre>T_i(n) = 2·T_i(n−2) + c_i
+       = 2²·T_i(n−4) + 3c_i
+       = 2³·T_i(n−6) + 7c_i
+       ⋮
+       = 2ᵏ·T_i(n−2k) + (2ᵏ−1)c_i
+n − 2k = 0  ⟹  k = n/2
+       = 2^(n/2)·T_i(0) + (2^(n/2)−1)c_i
+T_i(n) = (c_i0 + c_i)(√2)ⁿ − c_i  ∈ Ω((√2)ⁿ)</pre>
+    </div>
+    <div class="box accent-b">
+      <h3>Límite superior (desenrollando)</h3>
+<pre>T_s(n) = 2·T_s(n−1) + c_s
+       = 2²·T_s(n−2) + 3c_s
+       = 2³·T_s(n−3) + 7c_s
+       ⋮
+       = 2ᵏ·T_s(n−k) + (2ᵏ−1)c_s
+n − k = 0  ⟹  k = n
+       = 2ⁿ·T_s(0) + (2ⁿ−1)c_s
+T_s(n) = (c_s0 + c_s)2ⁿ − c_s  ∈ O(2ⁿ)</pre>
+    </div>
+  </div>
+  <p class="formula">Fibonacci: T_f(n) ∈ Θ(φⁿ), con √2 ≤ φ ≤ 2 · razón áurea φ = (1+√5)/2 ≈ 1.618</p>
+</section>
+
+<!-- ===================== 5 MOCHILA 0/1 ===================== -->
+<section id="k01">
+  <h2><span class="num">5</span> Mochila 0/1 (0/1 knapsack) sin / con PD</h2>
+  <p class="lead">Un ladrón encuentra objetos en <b>una casa</b>: cada objeto se lleva <b>entero o no se lleva</b> (0 ó 1).</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>El problema</h3>
+      <div class="tablewrap"><table class="tbl">
+        <tr><th>Objeto</th><th>Costo (C)</th><th>Peso (W)</th></tr>
+        <tr><td>1. Ajedrez</td><td>5</td><td>3</td></tr>
+        <tr><td>2. Barco</td><td>7</td><td>3</td></tr>
+        <tr><td>3. Campana</td><td>9</td><td>2</td></tr>
+        <tr><td>4. Jarrón</td><td>14</td><td>5</td></tr>
+      </table></div>
+      <p>Mochila con peso límite <b>wl = 5</b>.</p>
+      <p class="formula">Maximizar Σ x_i c_i  sujeto a  Σ x_i w_i ≤ wl,  x_i ∈ {0, 1}</p>
+    </div>
+    <div class="box">
+      <h3>¿Qué debería llevar el ladrón?</h3>
+      <ul>
+        <li><b>Ladrón rápido (goloso):</b> lleva lo más caro → Jarrón, valor 14 (llena la mochila).</li>
+        <li><b>Ladrón minucioso (búsqueda exhaustiva):</b> evalúa todas las posibles soluciones para hallar la óptima.</li>
+      </ul>
+      <p><b>¿Cuántas soluciones revisar con n objetos?</b> Para 2 objetos 2·2; para 3, 2·2·2; para 4, 2·2·2·2; para n objetos <b>2ⁿ</b>. La búsqueda exhaustiva es <b>O(2ⁿ)</b>; la gráfica de la lámina compara 2ⁿ con n²: a n = 16, 2ⁿ ≈ 65 000 (6.5·10⁴) mientras n² = 256.</p>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Solución manual (preparación)</h3>
+    <ul>
+      <li><b>Etapas:</b> los objetos, resolviendo del 4 al 1 (etapa 4 = Jarrón, … etapa 1 = Ajedrez).</li>
+      <li><b>Estado s_n:</b> capacidad restante, 0 a wl = 5.</li>
+      <li><b>Decisión x_n ∈ {0, 1}</b> (no llevar / llevar). Si x_n = 1 el costo directo es c_n y el siguiente estado es s_{n+1} = s_n − w_n.</li>
+      <li>Se usa <b>máx</b>: f*_n(s_n) = máx{ f_n(s_n, 0), f_n(s_n, 1) }. “–” significa que la decisión no cabe.</li>
+      <li>Etapa 5 resuelta: f*₅(s₅) = 0 (no quedan objetos).</li>
+    </ul>
+    <div class="grid two">
+      <div>
+        <p><b>Etapa 4 · Jarrón (14, peso 5)</b></p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₄</th><th>x=0</th><th>x=1</th><th>f*₄</th><th>x*₄</th></tr>
+          <tr><td>0</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>2</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>3</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>4</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>5</td><td>0+0</td><td class="best">14+0</td><td>14</td><td>1</td></tr>
+        </table></div>
+        <p><b>Etapa 2 · Barco (7, peso 3)</b></p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₂</th><th>x=0</th><th>x=1</th><th>f*₂</th><th>x*₂</th></tr>
+          <tr><td>0</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>2</td><td class="best">0+9</td><td>–</td><td>9</td><td>0</td></tr>
+          <tr><td>3</td><td class="best">0+9</td><td>7+0</td><td>9</td><td>0</td></tr>
+          <tr><td>4</td><td class="best">0+9</td><td>7+0</td><td>9</td><td>0</td></tr>
+          <tr><td>5</td><td>0+14</td><td class="best">7+9</td><td>16</td><td>1</td></tr>
+        </table></div>
+      </div>
+      <div>
+        <p><b>Etapa 3 · Campana (9, peso 2)</b></p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₃</th><th>x=0</th><th>x=1</th><th>f*₃</th><th>x*₃</th></tr>
+          <tr><td>0</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>2</td><td>0+0</td><td class="best">9+0</td><td>9</td><td>1</td></tr>
+          <tr><td>3</td><td>0+0</td><td class="best">9+0</td><td>9</td><td>1</td></tr>
+          <tr><td>4</td><td>0+0</td><td class="best">9+0</td><td>9</td><td>1</td></tr>
+          <tr><td>5</td><td class="best">0+14</td><td>9+0</td><td>14</td><td>0</td></tr>
+        </table></div>
+        <p><b>Etapa 1 · Ajedrez (5, peso 3)</b> (solo s₁ = 5)</p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₁</th><th>x=0</th><th>x=1</th><th>f*₁</th><th>x*₁</th></tr>
+          <tr><td>5</td><td class="best">0+16</td><td>5+9</td><td>16</td><td>0</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box accent-b">
+    <h3>Interpretando la tabla</h3>
+    <div class="tablewrap"><table class="tbl">
+      <tr><th>s</th><th>f*₄</th><th>x*₄</th><th>f*₃</th><th>x*₃</th><th>f*₂</th><th>x*₂</th><th>f*₁</th><th>x*₁</th></tr>
+      <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td></td></tr>
+      <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td></td></tr>
+      <tr><td>2</td><td>0</td><td>0</td><td>9</td><td>1</td><td>9</td><td>0</td><td></td><td></td></tr>
+      <tr><td>3</td><td>0</td><td>0</td><td>9</td><td>1</td><td>9</td><td>0</td><td></td><td></td></tr>
+      <tr><td>4</td><td>0</td><td>0</td><td>9</td><td>1</td><td>9</td><td>0</td><td></td><td></td></tr>
+      <tr><td>5</td><td>14</td><td>1</td><td>14</td><td>0</td><td>16</td><td>1</td><td>16</td><td>0</td></tr>
+    </table></div>
+    <p><b>Se lee desde la etapa 1 con s = 5:</b> x*₁ = 0 (no llevar el Ajedrez) → sigue s = 5, x*₂ = 1 (llevar el <b>Barco</b>, peso 3) → s = 5 − 3 = 2, x*₃ = 1 (llevar la <b>Campana</b>, peso 2) → s = 0, x*₄ = 0.</p>
+    <p class="formula">Solución: Barco + Campana · valor 7 + 9 = 16 · peso 5 (el goloso daba 14)</p>
+    <p><b>Pregunta de la lámina:</b> ¿y si la mochila tuviera un límite de 7? Prueba en la <a href="#tools">herramienta 2</a>: da <b>23</b> (Campana + Jarrón, peso 7). Es una respuesta mía, calculada con el mismo método.</p>
+  </div>
+
+  <div class="grid two">
+    <div class="box">
+      <h3>Mochila 0/1 con SRTBOT</h3>
+      <div class="tablewrap"><table class="tbl cheat srtbot">
+        <tr><td>S</td><td>Encuentre F(i, w) para 0 ≤ i ≤ n, 0 ≤ w ≤ wl</td></tr>
+        <tr><td>R</td><td>F(i,w) = F(i−1, w) si w &lt; w_i<br>F(i,w) = máx( c_i + F(i−1, w−w_i), F(i−1, w) ) si w ≥ w_i</td></tr>
+        <tr><td>T</td><td>Grafo dirigido acíclico (¡grafíquelo!)</td></tr>
+        <tr><td>B</td><td>F(0, w) = 0 · F(i, 0) = 0</td></tr>
+        <tr><td>O</td><td>Implementar primero sin memoización y después con memoización</td></tr>
+        <tr><td>T</td><td>Con memoización: T(n, wl) ∈ O(n·wl)</td></tr>
+      </table></div>
+      <p class="small">El DAG de la lámina tiene un vértice (i, w) por cada objeto y capacidad: de (1,5) se pasa a (2,5) si no se lleva el objeto, o a (2,2) si se lleva uno de peso 3; y así hasta la etapa final. Mis palabras: la fórmula F(i,w) mira “hacia atrás” (i−1) y el dibujo avanza por etapas; es el mismo grafo recorrido en sentidos opuestos.</p>
+    </div>
+    <div class="box">
+      <h3>Pseudocódigo</h3>
+<pre class="algo">ks(i, w)       sin memoización
+Entrada: objeto i, límite de peso w
+Salida: costo máximo
+1: if w = 0 or i = 0 then return 0
+3: else
+4:   if w &lt; W[i] then
+5:     return ks(i−1, w)
+6:   else
+7:     return máx( ks(i−1, w),
+                   C[i] + ks(i−1, w−W[i]) )</pre>
+<pre class="algo">ksM(i, w)      con memoización
+1: if w = 0 or i = 0 then return 0
+3: else
+4:   if M[i,w] is undefined then
+5:     if w &lt; W[i] then
+6:       M[i,w] = ksM(i−1, w)
+7:     else
+8:       M[i,w] = máx( ksM(i−1, w),
+                  C[i] + ksM(i−1, w−W[i]) )
+9:   return M[i,w]</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 6 MOCHILA ILIMITADA ===================== -->
+<section id="kil">
+  <h2><span class="num">6</span> Mochila ilimitada (unlimited knapsack) sin / con PD</h2>
+  <p class="lead">Ahora el ladrón está en una <b>tienda</b>: hay un número <b>ilimitado</b> de cada objeto y puede recoger varios duplicados del mismo objeto. Mismos objetos, pero <b>wl = 7</b> y x_i ∈ ℤ≥0.</p>
+
+  <div class="box accent-a">
+    <h3>¿Qué tiene que cambiar? (las preguntas de la lámina)</h3>
+    <ul>
+      <li><b>En la solución manual:</b> la decisión x_n ya no es solo 0 ó 1: hay <b>más columnas</b> (x = 0, 1, 2, …) mientras x·w_n ≤ s. Estado siguiente s_{n+1} = s_n − w_n·x_n, costo directo c_n·x_n.</li>
+      <li><b>En SRTBOT:</b> al llevar un objeto, el índice <b>no baja</b>: c_i + F(i, w−w_i) (antes F(i−1, w−w_i)).</li>
+      <li><b>En el pseudocódigo:</b> la llamada recursiva pasa i en lugar de i−1: <code>C[i] + uksM(i, w−W[i])</code>.</li>
+    </ul>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Solución manual con wl = 7</h3>
+    <p>Etapa 5 resuelta: f*₅ = 0. Se muestran las celdas “c·x + f*” (en verde la mejor).</p>
+    <div class="grid two">
+      <div>
+        <p><b>Etapa 4 · Jarrón (14, peso 5)</b></p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₄</th><th>x=0</th><th>x=1</th><th>f*₄</th><th>x*₄</th></tr>
+          <tr><td>0–4</td><td class="best">0+0</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>5</td><td>0+0</td><td class="best">14+0</td><td>14</td><td>1</td></tr>
+          <tr><td>6</td><td>0+0</td><td class="best">14+0</td><td>14</td><td>1</td></tr>
+          <tr><td>7</td><td>0+0</td><td class="best">14+0</td><td>14</td><td>1</td></tr>
+        </table></div>
+        <p><b>Etapa 2 · Barco (7, peso 3)</b></p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₂</th><th>x=0</th><th>x=1</th><th>x=2</th><th>f*₂</th><th>x*₂</th></tr>
+          <tr><td>0</td><td class="best">0+0</td><td>–</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td class="best">0+0</td><td>–</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>2</td><td class="best">0+9</td><td>–</td><td>–</td><td>9</td><td>0</td></tr>
+          <tr><td>3</td><td class="best">0+9</td><td>7+0</td><td>–</td><td>9</td><td>0</td></tr>
+          <tr><td>4</td><td class="best">0+18</td><td>7+0</td><td>–</td><td>18</td><td>0</td></tr>
+          <tr><td>5</td><td class="best">0+18</td><td>7+9</td><td>–</td><td>18</td><td>0</td></tr>
+          <tr><td>6</td><td class="best">0+27</td><td>7+9</td><td>14+0</td><td>27</td><td>0</td></tr>
+          <tr><td>7</td><td class="best">0+27</td><td>7+18</td><td>14+0</td><td>27</td><td>0</td></tr>
+        </table></div>
+      </div>
+      <div>
+        <p><b>Etapa 3 · Campana (9, peso 2)</b></p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₃</th><th>x=0</th><th>x=1</th><th>x=2</th><th>x=3</th><th>f*₃</th><th>x*₃</th></tr>
+          <tr><td>0</td><td class="best">0+0</td><td>–</td><td>–</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>1</td><td class="best">0+0</td><td>–</td><td>–</td><td>–</td><td>0</td><td>0</td></tr>
+          <tr><td>2</td><td>0+0</td><td class="best">9+0</td><td>–</td><td>–</td><td>9</td><td>1</td></tr>
+          <tr><td>3</td><td>0+0</td><td class="best">9+0</td><td>–</td><td>–</td><td>9</td><td>1</td></tr>
+          <tr><td>4</td><td>0+0</td><td>9+0</td><td class="best">18+0</td><td>–</td><td>18</td><td>2</td></tr>
+          <tr><td>5</td><td>0+14</td><td>9+0</td><td class="best">18+0</td><td>–</td><td>18</td><td>2</td></tr>
+          <tr><td>6</td><td>0+14</td><td>9+0</td><td>18+0</td><td class="best">27+0</td><td>27</td><td>3</td></tr>
+          <tr><td>7</td><td>0+14</td><td>9+14</td><td>18+0</td><td class="best">27+0</td><td>27</td><td>3</td></tr>
+        </table></div>
+        <p><b>Etapa 1 · Ajedrez (5, peso 3)</b> (solo s₁ = 7)</p>
+        <div class="tablewrap"><table class="tbl">
+          <tr><th>s₁</th><th>x=0</th><th>x=1</th><th>x=2</th><th>f*₁</th><th>x*₁</th></tr>
+          <tr><td>7</td><td class="best">0+27</td><td>5+18</td><td>10+0</td><td>27</td><td>0</td></tr>
+        </table></div>
+      </div>
+    </div>
+    <p><b>Interpretando:</b> s = 7: x*₁ = 0 → x*₂ = 0 → x*₃ = <b>3</b> (tres Campanas, peso 6) → s = 1, x*₄ = 0.</p>
+    <p class="formula">Solución: 3 Campanas · valor 27 · peso 6 de 7</p>
+    <p><b>Pregunta de la lámina:</b> ¿y si el límite fuera 5? Con la <a href="#tools">herramienta 2</a>: <b>18</b> (2 Campanas, peso 4); es respuesta mía con el mismo método.</p>
+  </div>
+
+  <div class="grid two">
+    <div class="box">
+      <h3>Mochila ilimitada con SRTBOT</h3>
+      <div class="tablewrap"><table class="tbl cheat srtbot">
+        <tr><td>S</td><td>Encuentre F(i, w) para 0 ≤ i ≤ n, 0 ≤ w ≤ wl</td></tr>
+        <tr><td>R</td><td>F(i,w) = F(i−1, w) si w &lt; w_i<br>F(i,w) = máx( c_i + F(<b>i</b>, w−w_i), F(i−1, w) ) si w ≥ w_i</td></tr>
+        <tr><td>T</td><td>Grafo dirigido acíclico (¡grafíquelo!)</td></tr>
+        <tr><td>B</td><td>F(0, w) = 0 · F(i, 0) = 0</td></tr>
+        <tr><td>O</td><td>Primero sin memoización, luego con memoización</td></tr>
+        <tr><td>T</td><td>Con memoización: T(n, wl) ∈ O(n·wl)</td></tr>
+      </table></div>
+      <p class="small">En la lámina el “i−1” del primer término está tachado y reemplazado por i.</p>
+    </div>
+    <div class="box">
+      <h3>Pseudocódigo con memoización</h3>
+<pre class="algo">uksM(i, w)
+Entrada: objeto i, límite de peso w
+Salida: costo máximo
+1: if w = 0 or i = 0 then return 0
+3: else
+4:   if M[i,w] is undefined then
+5:     if w &lt; W[i] then
+6:       M[i,w] = uksM(i−1, w)
+7:     else
+8:       M[i,w] = máx( uksM(i−1, w),
+                C[i] + uksM(<b>i</b>, w−W[i]) )
+9:   return M[i,w]</pre>
+    </div>
+  </div>
+
+  <div class="box accent-b">
+    <h3>0/1 frente a ilimitada</h3>
+    <div class="tablewrap"><table class="tbl big">
+      <tr><th></th><th>Mochila 0/1</th><th>Mochila ilimitada</th></tr>
+      <tr><td>Escenario</td><td>Una casa (cada objeto, una vez)</td><td>Una tienda (copias ilimitadas)</td></tr>
+      <tr><td>Decisión</td><td>x_i ∈ {0, 1}</td><td>x_i ∈ ℤ≥0</td></tr>
+      <tr><td>Relación al llevar</td><td>c_i + F(i−1, w−w_i)</td><td>c_i + F(i, w−w_i)</td></tr>
+      <tr><td>Ejemplo de la lámina</td><td>wl = 5 → 16 (Barco + Campana)</td><td>wl = 7 → 27 (3 Campanas)</td></tr>
+      <tr><td>Tiempo con memo</td><td>O(n·wl)</td><td>O(n·wl)</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ===================== 7 RECETA ===================== -->
+<section id="receta">
+  <h2><span class="num">★</span> Receta de resolución de problemas de PD</h2>
+  <p class="lead">Síntesis de todo el tema en pasos accionables. Las ideas vienen de las láminas (cuestionario de Wagner, método de [HL10], [Lev12] y SRTBOT); el orden y los comentarios son una organización mía.</p>
+
+  <div class="recipe">
+    <div class="box"><h3>Entiende el problema con el cuestionario</h3>
+      <p>Responde por escrito: variables de decisión, función objetivo (¿mín o máx?), etapas, estados por etapa y restricciones. <i>Mochila:</i> decisión = llevar el objeto o no; objetivo = máx valor; etapas = objetos; estado = capacidad restante; restricción = peso ≤ wl.</p></div>
+    <div class="box"><h3>Comprueba que PD aplica</h3>
+      <p><b>¿Hay principio de optimalidad?</b> (subestructura óptima + independencia: la decisión óptima desde un estado no depende de cómo llegaste). <b>¿Hay subproblemas superpuestos?</b> Si no se repiten, la PD no ahorra nada.</p></div>
+    <div class="box"><h3>Escribe las ecuaciones recursivas y el caso base</h3>
+      <p>f_n(s_n, x_n) = c(s_n, x_n) + f*_{n+1}(s_{n+1}); f*_n(s_n) = mín (o máx) sobre las decisiones factibles. Caso base: la última etapa (f*_{N+1} = 0).</p></div>
+    <div class="box"><h3>Llena las tablas de la última etapa a la primera</h3>
+      <p>Una tabla por etapa. Fila = estado; columnas = decisiones; celda = “costo directo + f* del estado siguiente”; marca “–” si no es factible; al final escribe f* y x*. Revisa las celdas contra la etapa anterior ya resuelta.</p></div>
+    <div class="box"><h3>Reconstruye la solución hacia adelante</h3>
+      <p>Empieza en el estado inicial de la etapa 1, lee x*, calcula el siguiente estado (s_{n+1}) y repite hasta el final. Si hay empate (“E o F”), hay varias soluciones óptimas.</p></div>
+    <div class="box"><h3>Pasa a código con SRTBOT</h3>
+      <p>Subproblema → Relacionar → Topología (DAG) → Básico → Original → Tiempo. Implementa <b>primero sin memoización</b> (para verificar la recurrencia) y <b>luego con memoización</b> (guardando en una tabla M).</p></div>
+    <div class="box"><h3>Analiza el tiempo</h3>
+      <p><b>(Criterio mío, coherente con los resultados de las láminas)</b> tiempo ≈ número de subproblemas × trabajo por subproblema. Fibonacci: n × O(1) = Θ(n). Mochila: (n · wl) × O(1) = O(n·wl), frente a O(2ⁿ) de la búsqueda exhaustiva.</p></div>
+  </div>
+
+  <div class="box accent-a">
+    <h3>Traducción: tabla manual ↔ SRTBOT (mi síntesis)</h3>
+    <div class="tablewrap"><table class="tbl cheat">
+      <tr><th>Método manual</th><th>SRTBOT / código</th><th>Ejemplo en la mochila</th></tr>
+      <tr><td>Etapa n</td><td>índice del objeto i</td><td>etapa 4 ↔ objeto 4 (se resuelve con i decreciente)</td></tr>
+      <tr><td>Estado s_n</td><td>parámetro w (capacidad restante)</td><td>s = 0…wl</td></tr>
+      <tr><td>f*_n(s_n)</td><td>F(i, w) (celda de M[i,w])</td><td>f*₂(5) = 16 ↔ F(2,5)</td></tr>
+      <tr><td>Decisión x_n</td><td>rama del máx en la relación</td><td>llevar = c_i + F(·), no llevar = F(i−1, w)</td></tr>
+      <tr><td>Caso base f*_{N+1} = 0</td><td>F(0,w) = 0, F(i,0) = 0</td><td>sin objetos o sin capacidad</td></tr>
+      <tr><td>“–” (no factible)</td><td>condición w &lt; w_i</td><td>el objeto no cabe</td></tr>
+    </table></div>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-red">
+      <h3>Errores frecuentes (observaciones mías)</h3>
+      <ul>
+        <li>Llenar las tablas de la etapa 1 hacia adelante (f* de la siguiente etapa aún no existe).</li>
+        <li>Olvidar marcar decisiones no factibles (“–”) o los casos base.</li>
+        <li>Usar mín cuando se maximiza (o al revés).</li>
+        <li>Confundir mochila 0/1 con ilimitada: en la ilimitada el índice i no baja al llevar el objeto.</li>
+        <li>Pensar que lo goloso basta: en la mochila 0/1, el Jarrón (14) pierde frente a Barco + Campana (16).</li>
+        <li>Memoizar sin subproblemas repetidos: no ayuda.</li>
+      </ul>
+    </div>
+    <div class="box accent-green">
+      <h3>Practica el método</h3>
+      <ol>
+        <li>Resuelve <b>en papel</b> la mochila 0/1 con wl = 7 (la pregunta de la lámina) y compara con la <a href="#tools">herramienta 2</a>.</li>
+        <li>Resuelve la mochila ilimitada con wl = 5.</li>
+        <li>Cambia costos/pesos en la herramienta, <i>predice</i> el resultado y verifica.</li>
+        <li>Dibuja el DAG de subproblemas (i, w) y traduce tu tabla a la función F(i, w).</li>
+        <li>Escribe ks y ksM en C++ (lo secundario, pero útil) y cuenta las llamadas con y sin memoización.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CHULETA ===================== -->
+<section id="chuleta">
+  <h2><span class="num">★</span> Chuleta de una página</h2>
+  <div class="tablewrap"><table class="tbl cheat">
+    <tr><th>Problema</th><th>Subproblema</th><th>Relación</th><th>Base</th><th>Tiempo</th></tr>
+    <tr><td>Fibonacci</td><td>f(i)</td><td>f(i−1) + f(i−2)</td><td>f(0)=0, f(1)=1</td><td>Θ(φⁿ) sin memo · Θ(n) con memo</td></tr>
+    <tr><td>Diligencia</td><td>f*_n(s_n)</td><td>mín_x { c(s_n,x) + f*_{n+1}(s_{n+1}) }</td><td>f*₅(J) = 0</td><td>cada tramo una vez (20) vs. 18 rutas completas</td></tr>
+    <tr><td>Mochila 0/1</td><td>F(i,w)</td><td>máx( c_i + F(i−1, w−w_i), F(i−1, w) ); si w&lt;w_i: F(i−1,w)</td><td>F(0,w) = F(i,0) = 0</td><td>O(n·wl) con memo · O(2ⁿ) exhaustiva</td></tr>
+    <tr><td>Mochila ilimitada</td><td>F(i,w)</td><td>máx( c_i + F(<b>i</b>, w−w_i), F(i−1, w) )</td><td>F(0,w) = F(i,0) = 0</td><td>O(n·wl) con memo</td></tr>
+  </table></div>
+  <div class="grid three">
+    <div class="box"><b>Optimalidad</b><br>subestructura óptima + independencia</div>
+    <div class="box"><b>Memoización</b><br>sirve si hay subproblemas superpuestos</div>
+    <div class="box"><b>SRTBOT</b><br>Subproblema · Relacionar · Topología · Básico · Original · Tiempo</div>
+  </div>
+  <p class="formula">Diligencia: f*(A) = 11 · Mochila 0/1 (wl=5) = 16 · Ilimitada (wl=7) = 27 · f(92) = 7 540 113 804 746 346 429</p>
+</section>
+
+<!-- ===================== TRUCOS ===================== -->
+<section id="mnemo">
+  <h2><span class="num">💡</span> Trucos mentales y analogías</h2>
+  <p class="lead">Ayudas para recordar (son mías, no vienen en las láminas).</p>
+  <div class="grid three mnemo">
+    <div class="box"><span class="em">🧭</span><b>Diligencia = GPS hacia atrás.</b> Primero sabes cuánto falta desde las paradas más cercanas al destino; con eso calculas las anteriores, hasta llegar al origen.</div>
+    <div class="box"><span class="em">📝</span><b>Memoizar = apuntar en una libreta.</b> Antes de calcular, miras si ya lo apuntaste; si no, lo calculas y lo apuntas.</div>
+    <div class="box"><span class="em">🧩</span><b>SRTBOT = “Sub-Re-To-Bá-Ori-To”.</b> Repite las 6 sílabas: Subproblema, Relacionar, Topología, Básico, Original, Tiempo.</div>
+    <div class="box"><span class="em">🎒</span><b>Mochila: “¿lo llevo o no?”.</b> En 0/1, si lo llevas, bajas al objeto anterior (i−1); en ilimitada, te quedas en el mismo objeto (i), porque puedes llevar otro igual.</div>
+    <div class="box"><span class="em">🐇</span><b>Fibonacci sin memo = repetir el mismo trabajo.</b> F(30) sin memo hace más de 2.6 millones de llamadas; con memo, 59.</div>
+    <div class="box"><span class="em">⚖️</span><b>Golosos ≠ PD.</b> El goloso decide a ciegas con lo que ve ahora; la PD compara opciones guardadas de subproblemas completos.</div>
+  </div>
+</section>
+
+<!-- ===================== HERRAMIENTAS ===================== -->
+<section id="tools">
+  <h2><span class="num">▶</span> Herramientas interactivas</h2>
+  <p class="lead">Aplican <b>exactamente el mismo método</b> de las láminas. Úsalas después de intentar el problema a mano.</p>
+
+  <h3>1 · Diligencia paso a paso</h3>
+  <p class="small">Vértices en azul = ya resueltos (con su f*); enlaces gruesos = decisiones óptimas x*; contorno violeta = etapa actual.</p>
+  <div class="demo">
+    <svg id="dil-svg" viewBox="0 0 470 280" role="img" aria-label="Grafo del problema de la diligencia con 5 etapas"></svg>
+    <div>
+      <div class="demo-ctl">
+        <button class="btn ghost" id="dilPrev">◀ Anterior</button>
+        <button class="btn" id="dilNext">Siguiente etapa ▶</button>
+        <button class="btn ghost" id="dilReset">Reiniciar</button>
+      </div>
+      <p class="tool-msg" id="dilMsg" aria-live="polite"></p>
+      <div class="tablewrap" id="dilTbl"></div>
+    </div>
+  </div>
+
+  <h3>2 · Calculadora de mochila (0/1 e ilimitada)</h3>
+  <p class="small">Edita nombres, costos, pesos, el límite wl (1–20) y el tipo de mochila. Se resuelve por etapas, del último objeto al primero, y se reconstruye la solución.</p>
+  <div class="box">
+    <div class="ks-form">
+      <div class="tablewrap"><table>
+        <thead><tr><th>Objeto</th><th>Costo</th><th>Peso</th></tr></thead>
+        <tbody id="ks-items"></tbody>
+      </table></div>
+      <div>
+        <p><label>Tipo:
+          <select id="ks-mode"><option value="01">Mochila 0/1</option><option value="unl">Mochila ilimitada</option></select></label></p>
+        <p><label>Límite wl: <input type="number" id="ks-wl" min="1" max="20" value="5" style="width:70px;font:inherit;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink)"></label></p>
+        <div class="demo-ctl">
+          <button class="btn ghost" id="ksPreset01">Ejemplo láminas 0/1 (wl=5)</button>
+          <button class="btn ghost" id="ksPresetUnl">Ejemplo láminas ilimitada (wl=7)</button>
+        </div>
+      </div>
+    </div>
+    <div class="demo-ctl">
+      <button class="btn ghost" id="ksPrev">◀ Anterior</button>
+      <button class="btn" id="ksNext">Siguiente etapa ▶</button>
+      <button class="btn ghost" id="ksAll">Ir a la solución</button>
+    </div>
+    <p class="tool-msg" id="ksMsg" aria-live="polite"></p>
+    <div class="tablewrap" id="ksTbl"></div>
+  </div>
+
+  <h3>3 · Fibonacci: cuántas llamadas hace cada versión</h3>
+  <div class="box">
+    <p><label>n = <b id="fibN">30</b> <input type="range" id="fib-n" min="0" max="92" value="30"></label></p>
+    <table class="fibtbl" id="fibOut"></table>
+    <p class="small">Llamadas sin memo = 2·f(n+1) − 1 (fórmula que sale de contar el árbol); con memo se simula la ejecución real de FM(n).</p>
+  </div>
+</section>
+
+<!-- ===================== TARJETAS ===================== -->
+<section id="tarjetas">
+  <h2><span class="num">?</span> Tarjetas de preguntas</h2>
+  <p class="lead">Haz clic para voltear. Al ver la respuesta marca <b>“Lo sé”</b> o <b>“Repasar”</b>: tu progreso se guarda en este navegador y puedes mostrar solo las pendientes.</p>
+  <div class="controls">
+    <div class="filters" id="topicFilters" aria-label="Filtrar por tema"></div>
+    <div class="actions">
+      <select id="statusSel" aria-label="Estado">
+        <option value="all">Todas</option>
+        <option value="pending">Solo pendientes</option>
+        <option value="known">Solo dominadas</option>
+      </select>
+      <button id="shuffle">🔀 Mezclar</button>
+      <button id="flipall">↻ Voltear todas</button>
+      <button id="reset">Borrar progreso</button>
+    </div>
+  </div>
+  <div class="progress" aria-hidden="true"><div id="progBar"></div></div>
+  <p class="counter"><span id="progText"></span> · <span id="counter"></span></p>
+  <div class="cards" id="cards"></div>
+</section>
+
+<!-- ===================== QUIZ ===================== -->
+<section id="quiz">
+  <h2><span class="num">✔</span> Mini quiz de autoevaluación</h2>
+  <p class="lead">15 preguntas de opción múltiple, en orden aleatorio, con explicación inmediata.</p>
+  <div id="quiz-box" aria-live="polite"></div>
+</section>
+
+</main>
+
+<footer>
+  Resumen basado en las láminas “Programación Dinámica” (UNSA, Análisis y Diseño de Algoritmos, CONT2 Tema 5, septiembre 2024).
+  Lo marcado como mío (síntesis, receta, respuestas a preguntas abiertas, trucos) no viene literalmente en las láminas.
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="tools.js"></script>
 </body>
 </html>

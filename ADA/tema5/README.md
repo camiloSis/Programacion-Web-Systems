@@ -1,0 +1,5 @@
+Resumen completo del PDF: el problema de la diligencia con sus 5 tablas resueltas, el principio de optimalidad, las ecuaciones recursivas, la memoización, SRTBOT, Fibonacci (con las cotas desarrolladas) y las mochilas 0/1 e ilimitada con todas sus tablas y pseudocódigos.
+Énfasis en la metodología:
+Una sección “Receta de resolución” con 7 pasos, una tabla que traduce la tabla manual a SRTBOT, errores frecuentes y ejercicios de práctica.
+Tres herramientas interactivas que aplican el mismo método de las láminas: la diligencia paso a paso, una calculadora de mochila (0/1 e ilimitada, con objetos, costos, pesos y límite editables) y un contador de llamadas de Fibonacci con y sin memoización.
+Estudio: 49 tarjetas con “Lo sé / Repasar” (se guarda en tu navegador), un quiz de 15 preguntas, una chuleta y trucos mentales.
