@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sorting Algorithms – Resumen y tarjetas de estudio</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Análisis y Diseño de Algoritmos · UNSA</p>
+    <h1>Sorting Algorithms</h1>
+    <p class="subtitle">Resumen estructurado + tarjetas de estudio</p>
+    <p class="meta">Prof. Alexander J. Benavides · Prof. Marcela Quispe Cruz · Prof. Manuel Loaiza<br>
+      Escuela Profesional de Ingeniería de Sistemas · Universidad Nacional de San Agustín de Arequipa, Perú · Septiembre, 2024</p>
+    <div class="warning">
+      <strong>Advertencia del profesor:</strong> tome apuntes; las láminas no necesariamente tienen sentido fuera del aula.
+      <strong>Recuerde:</strong> lo más importante es entender los métodos, traducir a C++ es secundario.
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Índice">
+  <a href="#intro">Intro</a>
+  <a href="#caracteristicas">Características</a>
+  <a href="#insertion">Insertion</a>
+  <a href="#selection">Selection</a>
+  <a href="#heap">Heap</a>
+  <a href="#merge">Merge</a>
+  <a href="#quick">Quicksort</a>
+  <a href="#lbound">Cota inferior</a>
+  <a href="#tabla">Comparativa</a>
+  <a href="#tarea">Tarea</a>
+  <a href="#tarjetas" class="cta">Tarjetas</a>
+</nav>
+
+<main>
+
+<!-- ============ INTRO ============ -->
+<section id="intro">
+  <h2><span class="num">0</span> Introducción, objetivos y material</h2>
+
+  <div class="grid two">
+    <article class="box">
+      <h3>🎯 Objetivos de aprendizaje</h3>
+      <p>Al terminar, el estudiante será capaz de:</p>
+      <ol>
+        <li>Describir los diferentes algoritmos de ordenamiento y los <strong>paradigmas</strong> usados para su diseño (p. ej. <em>divide et impera</em> para merge sort y quicksort).</li>
+        <li>Demostrar la <strong>corrección</strong> (o incorrección) de cada algoritmo.</li>
+        <li><strong>Implementar</strong> cada algoritmo correctamente.</li>
+        <li><strong>Analizar y comparar</strong> por: estabilidad, eficiencia en tiempo y memoria, número de comparaciones, de intercambios…</li>
+        <li><strong>Seleccionar</strong> el algoritmo adecuado al tipo de dato.</li>
+      </ol>
+    </article>
+
+    <article class="box">
+      <h3>🧭 Qué veremos y qué hay que saber</h3>
+      <p><strong>Algoritmos:</strong> 1) Insertion sort · 2) Selection sort · 3) Heap sort · 4) Merge sort · 5) Quicksort · y la <em>cota inferior</em> (lower bound).</p>
+      <p><strong>Se debe aprender a:</strong> describir cada algoritmo; compararlos en eficiencia de tiempo/memoria y otras características; usarlos según las necesidades.</p>
+      <p><strong>Conocimiento previo:</strong> análisis de algoritmos, notación asintótica, estructuras de datos (árboles, heaps).</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>❓ ¿Qué es ordenar (sorting)?</h3>
+    <p>Es el proceso de <strong>reorganizar elementos en un cierto orden</strong>. Se pueden ordenar números, palabras, cadenas, objetos…</p>
+    <ul>
+      <li><strong>Dónde se usa:</strong> bases de datos (registros de estudiantes por nombre o nota), Google (resultados por relevancia), Amazon (por precio)…</li>
+      <li><strong>Por qué importa:</strong> muchos algoritmos lo requieren como parte fundamental: búsqueda binaria, Kruskal (MST), Graham (envolvente convexa / convex hull)…</li>
+    </ul>
+  </article>
+
+  <div class="grid two">
+    <article class="box accent-a">
+      <h3>Ordenamiento por comparación</h3>
+      <p>Ordena <strong>comparando elementos</strong>. Ej.: ordenar de forma no decreciente <span class="deck">{2♠, 3♥, 3♣, 4♥, 5♠, 6♥, 7♣, 7♦, 9♠}</span></p>
+      <p class="tag">⭐ Es el tema de esta clase.</p>
+    </article>
+    <article class="box accent-b">
+      <h3>Ordenamiento por distribución</h3>
+      <p>Ordena <strong>distribuyendo elementos</strong> (sin compararlos entre sí). Ej.: repartir cartas por palo <span class="deck">{A♠, K♠, Q♥, J♥, K♣, Q♣, Q♦, K♦}</span></p>
+    </article>
+  </div>
+
+  <details class="box">
+    <summary>📚 Material de estudio (libros y artículos)</summary>
+    <div class="grid two">
+      <div>
+        <h4>Libros (con secciones «Sc.» y capítulos «C.»)</h4>
+        <ul class="refs">
+          <li>Levitin, A. (2012). <em>Introduction to the Design &amp; Analysis of Algorithms</em> (3.ª ed.). Pearson. — Sc. 3.1, 4.1, 5.1, 5.2, 6.4</li>
+          <li>Goodrich, M.T. &amp; Tamassia, R. (2015). <em>Algorithm Design and Applications</em>. Wiley. — C. 5, 8</li>
+          <li>Skiena, S.S. (2020). <em>The Algorithm Design Manual</em> (3.ª ed.). Springer. — Sc. 2.5, C. 4</li>
+          <li>Cormen, Leiserson, Rivest &amp; Stein (2022). <em>Introduction to Algorithms</em> (4.ª ed.). MIT Press. — Sc. 2.1, 8.1, C. 6, 7</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Artículos</h4>
+        <p><strong>Heapsort:</strong></p>
+        <ul class="refs">
+          <li>Floyd (1962). Algorithm 113: Treesort. <em>Comm. ACM 5(8)</em>, 434.</li>
+          <li>Williams (1964). Algorithm 232: Heapsort. <em>Comm. ACM 7(6)</em>, 347-348.</li>
+          <li>Floyd (1964). Algorithm 245: Treesort 3. <em>Comm. ACM 7(12)</em>, 701.</li>
+          <li>Paparrizos (2012). A Tight Bound on the Worst-Case Number of Comparisons for Floyd’s Heap Construction Algorithm. Springer.</li>
+        </ul>
+        <p><strong>Quicksort:</strong></p>
+        <ul class="refs">
+          <li>Hoare (1961). Algorithm 63: partition; Algorithm 64: quicksort. <em>Comm. ACM 4(7)</em>, 321.</li>
+          <li>Hoare (1962). Quicksort. <em>The Computer Journal 5(1)</em>, 10-16.</li>
+          <li>Dijkstra (1976). The problem of the Dutch national flag. En <em>A Discipline of Programming</em>. Prentice-Hall.</li>
+          <li>Musser (1997). Introspective sorting and selection algorithms. <em>Software: Practice and Experience 27(8)</em>, 983-993.</li>
+          <li>Yaroslavskiy (2009). Dual-pivot quicksort. Personal Technical Report.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ CARACTERISTICAS ============ -->
+<section id="caracteristicas">
+  <h2><span class="num">1</span> Características de los algoritmos de ordenamiento</h2>
+  <p class="lead">Cuatro «etiquetas» para comparar cualquier algoritmo. Se usarán durante todo el resumen.</p>
+
+  <div class="grid four">
+    <article class="box chip c1">
+      <h3>⚡ Eficiente</h3>
+      <p>Ordena <em>n</em> elementos en <strong>O(n log n)</strong>.</p>
+      <p class="small">Se debe a la cota inferior de Ω(n log n) comparaciones (sección 7).</p>
+    </article>
+    <article class="box chip c2">
+      <h3>🔄 Adaptativo</h3>
+      <p>Aprovecha el <strong>orden existente</strong> en la entrada.</p>
+      <p class="small">Ordena más rápido una entrada casi ordenada.</p>
+    </article>
+    <article class="box chip c3">
+      <h3>📦 In-place</h3>
+      <p>Requiere a lo sumo <strong>O(log n)</strong> de espacio adicional.</p>
+      <p class="small">Además del O(n) que ya ocupa la entrada.</p>
+    </article>
+    <article class="box chip c4">
+      <h3>⚖️ Estable</h3>
+      <p>Mantiene el <strong>orden relativo</strong> de elementos con claves iguales.</p>
+      <p class="small">Si 5♥ aparece antes que 5♠ en la entrada, debe seguir antes en la salida.</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>Ejemplo de estabilidad</h3>
+    <p>Entrada: <span class="deck">{5♥, 3♣, 8♣, 2♦, 5♠}</span></p>
+    <ul>
+      <li><strong>Salida estable:</strong> <span class="deck">{2♦, 3♣, 5♥, 5♠, 8♣}</span> (5♥ sigue antes que 5♠)</li>
+      <li><strong>Salida no estable:</strong> <span class="deck">{2♦, 3♣, 5♠, 5♥, 8♣}</span> (los dos 5 se invirtieron)</li>
+    </ul>
+  </article>
+</section>
+
+<!-- ============ INSERTION ============ -->
+<section id="insertion">
+  <h2><span class="num">2</span> Insertion sort (ordenamiento por inserción)</h2>
+  <p class="lead">💡 <strong>Analogía:</strong> es como ordenar las cartas que tienes en la mano: tomas una carta nueva y la colocas en su lugar entre las que ya están ordenadas.</p>
+
+  <div class="grid two">
+    <article class="box">
+      <h3>Algoritmo</h3>
+      <p><strong>Entrada:</strong> lista desordenada <em>I</em> · <strong>Salida:</strong> lista ordenada <em>S</em></p>
+      <pre class="algo">1: S ← lista vacía
+2: for each x in I do
+3:     quitar x de I
+4:     buscar la posición ordenada de x en S
+5:     insertar x en S en esa posición
+6: return S</pre>
+      <p><strong>Idea:</strong> insertar el siguiente elemento en <em>S</em> en una posición ordenada.</p>
+      <p><strong>Invariante:</strong> <em>S</em> está ordenada y contiene los elementos que se han quitado de <em>I</em>.</p>
+    </article>
+
+    <article class="box">
+      <h3>Traza paso a paso</h3>
+      <table class="trace">
+        <tr><th>S (ordenada)</th><th>I (pendiente)</th></tr>
+        <tr><td class="deck">∅</td><td class="deck">{5♥, 3♣, 8♣, 2♦, 5♠}</td></tr>
+        <tr><td class="deck">{5♥}</td><td class="deck">{3♣, 8♣, 2♦, 5♠}</td></tr>
+        <tr><td class="deck">{3♣, 5♥}</td><td class="deck">{8♣, 2♦, 5♠}</td></tr>
+        <tr><td class="deck">{3♣, 5♥, 8♣}</td><td class="deck">{2♦, 5♠}</td></tr>
+        <tr><td class="deck">{2♦, 3♣, 5♥, 8♣}</td><td class="deck">{5♠}</td></tr>
+        <tr><td class="deck">{2♦, 3♣, 5♥, 5♠, 8♣}</td><td class="deck">∅</td></tr>
+      </table>
+      <p class="small">Fíjate que 5♠ se inserta <em>después</em> de 5♥ → eso hace al algoritmo estable.</p>
+    </article>
+  </div>
+
+  <div class="grid three">
+    <article class="box accent-red">
+      <h3>Peor caso: O(n²)</h3>
+      <p>Las operaciones más caras son las líneas <strong>4 y 5</strong> (buscar e insertar).</p>
+      <ul>
+        <li>Si <em>S</em> es un <strong>arreglo</strong>: O(n) para desplazar los elementos mayores.</li>
+        <li>Si <em>S</em> es una <strong>lista enlazada</strong>: O(n) para encontrar la posición.</li>
+      </ul>
+      <p>Se repite para <em>n</em> elementos → <strong>O(n²)</strong>.</p>
+    </article>
+    <article class="box accent-green">
+      <h3>Mejor caso: Ω(n)</h3>
+      <ul>
+        <li>Si la entrada ya está ordenada, se verifica en <strong>Ω(n)</strong>.</li>
+        <li>Si está <em>casi</em> ordenada: complejidad <strong>Θ(n + i)</strong>, donde <em>i</em> es el número de <strong>inversiones</strong>.</li>
+      </ul>
+      <p class="small">Inversión = par de elementos fuera de orden. Por eso es <strong>adaptativo</strong>.</p>
+    </article>
+    <article class="box accent-a">
+      <h3>Caso promedio: O(n²)</h3>
+      <p>El número de inversiones está en <em>i</em> ∈ [0, n(n−1)/2].</p>
+      <p>Si una permutación tiene <em>i</em> inversiones, su <strong>reversa</strong> tiene n(n−1)/2 − <em>i</em>.</p>
+      <p>Promediando cada par de permutaciones:</p>
+      <p class="formula">(n(n−1)/2 − i + i) / 2 = n(n−1)/4 ∈ O(n²)</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>Características de Insertion sort</h3>
+    <table class="tbl">
+      <tr><th>Eficiente</th><th>Adaptativo</th><th>In-place</th><th>Estable</th></tr>
+      <tr><td>No: O(n²)</td><td>Sí: O(n)</td><td>Sí: O(1)</td><td>Sí</td></tr>
+    </table>
+  </article>
+
+  <article class="box accent-b">
+    <h3>🌳 Tree sort: ¿y si usamos otra estructura para S?</h3>
+    <p>Pregunta de la lámina: ¿podemos usar otra estructura de datos para <em>S</em> con búsqueda e inserción más rápidas que arreglos y listas enlazadas?</p>
+    <ul>
+      <li>En un <strong>árbol binario de búsqueda autobalanceado</strong>, buscar e insertar cuesta <strong>O(log n)</strong>.</li>
+      <li><strong>Tree sort</strong> = Insertion sort con <em>S</em> implementado como ese árbol.</li>
+      <li>Insertar todos los elementos: <strong>O(n log n)</strong>; recorrer en orden para la salida: <strong>O(n)</strong>.</li>
+      <li><strong>NO es in-place</strong>. Es eficiente pero <strong>rara vez usado</strong>: el balanceo hace cada inserción muy costosa y la O oculta una constante alta.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- ============ SELECTION ============ -->
+<section id="selection">
+  <h2><span class="num">3</span> Selection sort (ordenamiento por selección)</h2>
+  <p class="lead">💡 <strong>Analogía:</strong> de la pila desordenada eliges siempre la carta <em>más pequeña</em> y la pones al final de tu fila ordenada.</p>
+
+  <div class="grid two">
+    <article class="box">
+      <h3>Algoritmo</h3>
+      <pre class="algo">1: S ← lista vacía
+2: for i = 1 to n do
+3:     x ← elemento de I con la menor clave
+4:     quitar x de I
+5:     añadir x al final de S
+6: return S</pre>
+      <p><strong>Invariante:</strong> <em>S</em> está ordenada y contiene los elementos <strong>más pequeños</strong> quitados de <em>I</em>.</p>
+      <p><strong>Truco para quitar el mínimo rápido:</strong> intercambiarlo (swap) con el primer elemento de <em>I</em>. Esto lo hace <strong>NO estable</strong>.</p>
+      <p><strong>In-place</strong> y <strong>NO estable</strong>.</p>
+    </article>
+
+    <article class="box">
+      <h3>Traza (con swap)</h3>
+      <p>Entrada: <span class="deck">{5♥, 8♣, 5♠, 2♦, 3♣}</span></p>
+      <table class="trace">
+        <tr><th>S</th><th>I</th></tr>
+        <tr><td class="deck">∅</td><td class="deck">{5♥, 8♣, 5♠, 2♦, 3♣}</td></tr>
+        <tr><td class="deck">{2♦}</td><td class="deck">{5♥, 8♣, 5♠, 3♣}</td></tr>
+        <tr><td class="deck">{2♦, 3♣}</td><td class="deck">{5♠, 5♥, 8♣}</td></tr>
+        <tr><td class="deck">{2♦, 3♣, 5♠}</td><td class="deck">{5♥, 8♣}</td></tr>
+        <tr><td class="deck">{2♦, 3♣, 5♠, 5♥}</td><td class="deck">{8♣}</td></tr>
+        <tr><td class="deck">{2♦, 3♣, 5♠, 5♥, 8♣}</td><td class="deck">∅</td></tr>
+      </table>
+      <p class="small">Los dos 5 terminan invertidos (5♠ antes que 5♥) → inestable.</p>
+    </article>
+  </div>
+
+  <div class="grid two">
+    <article class="box accent-b">
+      <h3>🫧 Bubble sort (nota de la lámina)</h3>
+      <p>Es un ordenamiento <strong>estable</strong> «tipo selección» que requiere <strong>desplazar los demás elementos</strong> para reubicar el menor, en lugar de hacer un swap.</p>
+      <p>Esos desplazamientos cuestan O(n) y <strong>duplican el costo</strong> de Selection sort.</p>
+    </article>
+    <article class="box accent-red">
+      <h3>Complejidad: siempre O(n²)</h3>
+      <ul>
+        <li><strong>Línea 3:</strong> buscar el menor en un conjunto desordenado es <strong>O(n)</strong> (arreglo o lista).</li>
+        <li><strong>Línea 4:</strong> un swap es O(1).</li>
+        <li>Total: <strong>O(n²)</strong> en peor, mejor y promedio, con arreglo o lista enlazada.</li>
+        <li>No es adaptativo: ordenar una entrada ya ordenada cuesta lo mismo.</li>
+      </ul>
+      <p><strong>Pista:</strong> el cuello de botella es <em>encontrar la menor clave</em> → reemplazar <em>I</em> por una <strong>cola de prioridad</strong> → <strong>Heap sort</strong>.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ HEAP ============ -->
+<section id="heap">
+  <h2><span class="num">4</span> Heap sort (ordenamiento por montículo)</h2>
+  <p class="lead">💡 <strong>Idea:</strong> primero «tiras» todos los elementos desordenados en un heap; luego sacas repetidamente el siguiente elemento ordenado (el máximo).</p>
+
+  <div class="grid two">
+    <article class="box">
+      <h3>Algoritmo</h3>
+      <pre class="algo">1: H ← BottomUpMaxHeap(I)
+2: S ← lista vacía
+3: for i = 1 to n do
+4:     x ← RemoveMax(H)
+5:     añadir x a S
+6: return S</pre>
+      <p><strong>Invariante:</strong> <em>S</em> está ordenada y contiene los elementos <strong>más grandes</strong> quitados de <em>H</em>.</p>
+      <p class="small">Propuesto por Floyd (1962, 1964) y Williams (1964).</p>
+    </article>
+
+    <article class="box">
+      <h3>¿Qué es un heap binario?</h3>
+      <p>Un <strong>árbol binario completo</strong> con la propiedad de <strong>max-heap</strong>: cada padre es ≥ que sus hijos.</p>
+      <pre class="tree">        7
+      /   \
+     6     5
+    / \   / \
+   4   3 2   1</pre>
+      <p><strong>Se representa fácil como arreglo</strong> (raíz en posición 1):</p>
+      <ul>
+        <li>Padre de <em>i</em>: ⌊i/2⌋</li>
+        <li>Hijos de <em>i</em>: 2i y 2i+1</li>
+        <li>Raíz: 1</li>
+      </ul>
+      <p class="deck">[7, 6, 5, 4, 3, 2, 1]</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>Fase 1 · Construir el heap (BottomUpMaxHeap)</h3>
+    <pre class="algo">BottomUpMaxHeap(I):
+1: «tirar» I en H
+2: for i = ⌊n/2⌋ to 1 do
+3:     SiftUp(H[i])
+4: return H</pre>
+    <p>Repara la propiedad max-heap <strong>desde los padres de abajo hasta la raíz</strong> usando <strong>SiftUp</strong>.</p>
+    <pre class="algo">SiftUp(H[i]):
+1: if H[i] tiene hijo then
+2:     maxChild ← hijo máximo
+3:     if H[i] &lt; H[maxChild] then
+4:         swap(H[i], H[maxChild])
+5:         SiftUp(H[maxChild])</pre>
+    <p class="small">📝 <strong>Nota:</strong> en la lámina se llama «SiftUp», pero lo que hace es <em>hundir</em> el nodo intercambiándolo con su hijo mayor (en otros libros se llama sift-down / heapify).</p>
+    <p><strong>Traza</strong> con <span class="deck">H = {5♥, 8♣, 5♠, 2♦, 3♣, 9♦, 7♠}</span>:</p>
+    <ol>
+      <li>Se empieza en el nodo 3 (5♠): su hijo mayor es 9♦ → swap → <span class="deck">{5♥, 8♣, 9♦, 2♦, 3♣, 5♠, 7♠}</span></li>
+      <li>Nodo 2 (8♣): ya es mayor que sus hijos 2♦ y 3♣ → no cambia.</li>
+      <li>Nodo 1 (5♥): se intercambia con 9♦ y luego con 7♠ → <span class="deck">{9♦, 8♣, 7♠, 2♦, 3♣, 5♠, 5♥}</span> ✅ heap listo.</li>
+    </ol>
+  </article>
+
+  <article class="box">
+    <h3>Fase 2 · Extraer el máximo (RemoveMax)</h3>
+    <p><strong>RemoveMax</strong> intercambia la raíz con el último elemento del heap, lo saca (va a <em>S</em>) y llama a <strong>SiftUp sobre la raíz</strong> para reparar el heap.</p>
+    <table class="trace">
+      <tr><th>H (heap)</th><th>S</th></tr>
+      <tr><td class="deck">{9♦, 8♣, 7♠, 2♦, 3♣, 5♠, 5♥}</td><td class="deck">∅</td></tr>
+      <tr><td class="deck">{8♣, 5♥, 7♠, 2♦, 3♣, 5♠}</td><td class="deck">{9♦}</td></tr>
+      <tr><td class="deck">{7♠, 5♥, 5♠, 2♦, 3♣}</td><td class="deck">{8♣, 9♦}</td></tr>
+      <tr><td class="deck">{5♥, 3♣, 5♠, 2♦}</td><td class="deck">{7♠, 8♣, 9♦}</td></tr>
+      <tr><td class="deck">{5♠, 3♣, 2♦}</td><td class="deck">{5♥, 7♠, 8♣, 9♦}</td></tr>
+      <tr><td class="deck">{3♣, 2♦}</td><td class="deck">{5♠, 5♥, 7♠, 8♣, 9♦}</td></tr>
+      <tr><td class="deck">{2♦}</td><td class="deck">{3♣, 5♠, 5♥, 7♠, 8♣, 9♦}</td></tr>
+      <tr><td class="deck">∅</td><td class="deck">{2♦, 3♣, 5♠, 5♥, 7♠, 8♣, 9♦}</td></tr>
+    </table>
+    <p class="small">Observa: en la entrada 5♥ iba antes que 5♠, y en la salida 5♠ va antes que 5♥ → <strong>no es estable</strong>.</p>
+  </article>
+
+  <article class="box accent-green">
+    <h3>Complejidad y propiedades</h3>
+    <table class="tbl">
+      <tr><th>BottomUpMaxHeap(I)</th><th>RemoveMax(H)</th><th>Heap sort total</th><th>In-place</th><th>Estable</th></tr>
+      <tr><td>Θ(n) <span class="small">(Floyd 64; analizado por Paparrizos 12)</span></td><td>O(log n)</td><td>O(n log n) en peor/mejor/promedio</td><td>Sí</td><td>No</td></tr>
+    </table>
+  </article>
+</section>
+
+<!-- ============ MERGE ============ -->
+<section id="merge">
+  <h2><span class="num">5</span> Merge sort (ordenamiento por mezcla)</h2>
+  <p class="lead">💡 <strong>Paradigma divide y vencerás:</strong> la partición es trivial (cortar por la mitad) y todo el trabajo ocurre al <em>mezclar</em> dos listas ya ordenadas.</p>
+
+  <div class="grid two">
+    <article class="box">
+      <h3>Algoritmo (recursivo)</h3>
+      <pre class="algo">1: if I tiene un elemento then
+2:     return S = I
+3: else
+4:     partir I en I₁ e I₂ con ⌈n/2⌉ y ⌊n/2⌋ elementos
+5:     ordenar I₁ recursivamente → S₁
+6:     ordenar I₂ recursivamente → S₂
+7:     mezclar S₁ y S₂ en S
+8: return S</pre>
+      <p><strong>Divide</strong> (partir) → <strong>Merge sort</strong> a cada mitad → <strong>Merge</strong> (mezclar).</p>
+    </article>
+
+    <article class="box">
+      <h3>Operación Merge</h3>
+      <p><strong>Entrada:</strong> dos listas ordenadas S₁ y S₂ · <strong>Salida:</strong> lista ordenada S</p>
+      <pre class="algo">1: S ← lista vacía
+2: loop
+3:   if S₁.front() ≤ S₂.front() then
+4:       mover S₁.front() a S
+5:       if S₁ vacía then break
+6:   else
+7:       mover S₂.front() a S
+8:       if S₂ vacía then break
+9: concatenar los restantes al final de S
+10: return S</pre>
+      <p>Cuesta <strong>O(n)</strong>. Es natural para listas enlazadas; con arreglos usa <strong>memoria adicional</strong>.</p>
+      <p class="small">El «≤» (y no «&lt;») hace que ante claves iguales salga primero la de S₁ → conserva la estabilidad.</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>Traza de la mezcla</h3>
+    <p><span class="deck">S₁ = {3♣, 5♥, 8♣}</span> y <span class="deck">S₂ = {5♠, 7♠, 9♦}</span> → se comparan los frentes:</p>
+    <p class="deck">3♣ vs 5♠ → 3♣ · 5♥ vs 5♠ → 5♥ · 8♣ vs 5♠ → 5♠ · 8♣ vs 7♠ → 7♠ · 8♣ vs 9♦ → 8♣ · sobra 9♦</p>
+    <p>Resultado: <span class="deck">S = {3♣, 5♥, 5♠, 7♠, 8♣, 9♦}</span></p>
+  </article>
+
+  <div class="grid two">
+    <article class="box accent-b">
+      <h3>Versión iterativa</h3>
+      <p>Se <strong>corta la lista en n listas de tamaño 1</strong> y luego se mezclan listas de tamaño <strong>2<sup>i</sup></strong> (1→2→4→8…) hasta quedar una.</p>
+      <p>Ej.: <span class="deck">{5♥, 2♦, 8♣, 5♠, 3♣}</span> → pares: {2♦,5♥}, {5♠,8♣}, {3♣} → {2♦,5♥,5♠,8♣}, {3♣} → <span class="deck">{2♦, 3♣, 5♥, 5♠, 8♣}</span></p>
+    </article>
+    <article class="box accent-green">
+      <h3>Complejidad: O(n log n)</h3>
+      <ul>
+        <li>El árbol de subproblemas tiene <strong>1 + ⌈log n⌉ niveles</strong>.</li>
+        <li>En cada nivel el costo total de mezclar es <strong>c·n</strong> (ej.: 2·cn/2, 4·cn/4, 8·cn/8…).</li>
+        <li>Total: (1 + ⌈log n⌉)·cn ∈ <strong>O(n log n)</strong> en peor, mejor y promedio.</li>
+      </ul>
+      <p><strong>Estable</strong>, pero <strong>NO in-place</strong> (espacio O(n)).</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ QUICK ============ -->
+<section id="quick">
+  <h2><span class="num">6</span> Quicksort</h2>
+  <p class="lead">💡 <strong>Divide y vencerás, pero al revés que merge sort:</strong> la unión es trivial (concatenar) y el trabajo ocurre al <em>particionar</em> alrededor de un pivote.</p>
+
+  <article class="box">
+    <h3>Algoritmo general</h3>
+    <pre class="algo">1: elegir un pivote v de la lista I
+2: partir I en I₁ e I₂ tales que:
+     – I₁ contiene ítems con clave k ≤ v
+     – I₂ contiene ítems con clave k ≥ v
+     – los ítems con k = v pueden ir en cualquiera de las dos
+3: ordenar I₁ recursivamente → S₁
+4: ordenar I₂ recursivamente → S₂
+5: concatenar S₁ y S₂ en S
+6: return S</pre>
+    <p>Pregunta de la lámina: ¿partición de <strong>Hoare</strong> o de <strong>Lomuto</strong>?</p>
+  </article>
+
+  <div class="grid two">
+    <article class="box">
+      <h3>Partición de Lomuto <span class="small">[CLRS22]</span></h3>
+      <pre class="algo">1: pivot = A[low]
+2: i = low + 1
+3: for j = i to high do
+4:     if A[j] ≤ pivot then
+5:         swap(A[i], A[j])
+6:         i = i + 1
+7: swap(A[i−1], A[low])
+8: return middle = i − 1</pre>
+      <p><strong>Invariantes:</strong> los ítems a la izquierda de <em>i</em> tienen clave ≤ pivot; los de <em>i</em> a <em>j−1</em> tienen clave &gt; pivot.</p>
+      <p><em>middle</em> es la posición <strong>final</strong> del pivote. Caso promedio: n/2 swaps.</p>
+      <p><strong>Traza</strong> (pivote 5♥) sobre <span class="deck">{5♥, 2♦, 8♣, 3♣, 9♦, 5♠, 7♠}</span> → <span class="deck">{5♠, 2♦, 3♣, 5♥, 9♦, 8♣, 7♠}</span>; el pivote 5♥ queda en su lugar definitivo.</p>
+    </article>
+
+    <article class="box">
+      <h3>Partición de Hoare <span class="small">[Hoare61, Hoare62]</span></h3>
+      <pre class="algo">1: pivot = A[low]
+2: loop
+3:     while A[low] &lt; pivot do low++
+4:     while A[high] &gt; pivot do high−−
+5:     if low &lt; high then
+6:         swap(A[low], A[high])
+7:         low++
+8:         high−−
+9:     else
+10:        return middle = high</pre>
+      <p>Dos punteros que <strong>se acercan desde los extremos</strong>.</p>
+      <p><strong>Invariantes:</strong> a la izquierda de <em>low</em> hay claves ≤ pivot; a la derecha de <em>high</em> hay claves ≥ pivot.</p>
+      <p>El pivote termina eventualmente en su lugar. Peor caso: n/2 swaps.</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>Quicksort de Hoare (recursión)</h3>
+    <pre class="algo">1: if low &lt; high then
+2:     middle = Partition(A, low, high)
+3:     Quicksort(A, low, middle)
+4:     Quicksort(A, middle + 1, high)</pre>
+    <p>En el quicksort con <strong>Lomuto</strong>, la línea 3 usa <strong>middle − 1</strong> (el pivote ya está en su sitio).</p>
+    <p>Propiedades: <strong>in-place</strong> pero <strong>NO estable</strong>. Usa O(log n) de espacio extra para la pila (recursiva o iterativa). <em>Merge sort es mejor como ordenamiento estable.</em></p>
+  </article>
+
+  <div class="grid three">
+    <article class="box accent-green">
+      <h3>Mejor caso: O(n log n)</h3>
+      <p><strong>Buen rendimiento ⇔ partición balanceada ⇔ buena elección de pivote.</strong></p>
+      <p>Requiere un pivote <em>perfecto</em> siempre (mediana). Cada nivel cuesta cn y hay 1 + ⌈log n⌉ niveles. Es similar a Merge sort.</p>
+    </article>
+    <article class="box accent-red">
+      <h3>Peor caso: O(n²)</h3>
+      <p>Requiere el <em>peor</em> pivote siempre: el <strong>menor o mayor</strong> elemento (p. ej. entrada ya ordenada con pivote en un extremo).</p>
+      <p>También ocurre cuando <strong>todos los elementos tienen la misma clave</strong> con la partición de Lomuto.</p>
+      <p>La recursión llega a profundidad O(n).</p>
+    </article>
+    <article class="box accent-a">
+      <h3>Caso promedio: O(n log n)</h3>
+      <ul>
+        <li>Pivote aleatorio: 50 % de probabilidad de partición buena (entre 1/4 y 3/4).</li>
+        <li>Partición promedio de 1/4 – 3/4 → niveles de log<sub>4/3</sub> n.</li>
+        <li>Profundidad promedio de recursión: <strong>2 log<sub>4/3</sub> n</strong>.</li>
+        <li>Cada nivel tiene a lo sumo <em>n</em> elementos.</li>
+      </ul>
+      <p class="small">Mismo O(n log n) que merge sort, pero con constantes ocultas distintas.</p>
+    </article>
+  </div>
+
+  <article class="box">
+    <h3>🚀 Mejoras de Quicksort</h3>
+    <dl class="defs">
+      <dt>Elementos iguales</dt>
+      <dd><strong>Partición en tres vías</strong> (Problema de la bandera holandesa, Dijkstra 76): separa en &lt; pivot, = pivot, &gt; pivot. Compara A[i] con el pivote dos veces.</dd>
+      <dt>Mejor elección de pivote</dt>
+      <dd><strong>Mediana de tres:</strong> aplicar insertion sort a {front, middle, tail} y elegir <em>middle</em> como pivote.<br>
+          <strong>Pseudomediana de nueve</strong> [Ben93]: mediana de las medianas de tres grupos de tres.<br>
+          <strong>Dual-pivot de tres vías</strong> [Yar09]: particiona en &lt; p1, entre p1 y p2, &gt; p2; funciona bien con claves repetidas.</dd>
+      <dt>Cambiar a insertion sort</dt>
+      <dd>Es más rápido en subarreglos pequeños. Usado en <code>std::sort</code> de GNU C++ y por Yaroslavskiy-Bentley-Bloch desde el sort de Java 7.</dd>
+    </dl>
+  </article>
+
+  <article class="box accent-b">
+    <h3>🧬 Introsort (introspective sorting) <span class="small">[Mus97]</span></h3>
+    <p><strong>Problema:</strong> una mala partición produce recursiones de profundidad O(n). <strong>Idea:</strong> limitar la profundidad de la recursión.</p>
+    <p>Introsort es un algoritmo <strong>híbrido</strong>: quicksort con estas mejoras:</p>
+    <ol>
+      <li>El pivote se elige con la <strong>mediana de tres</strong>.</li>
+      <li>Si la profundidad de recursión supera <strong>2⌊log₂ n⌋</strong>, cambia a <strong>Heap sort</strong> (siempre O(n log n)).</li>
+      <li>Si el número de ítems es menor a un umbral (<strong>16</strong>), cambia a <strong>Insertion sort</strong>.</li>
+    </ol>
+    <p class="small">Cada implementación usa umbrales distintos: C++ (GCC: 16, LLVM: 30|6, .NET: ?), Java: 14, …</p>
+  </article>
+</section>
+
+<!-- ============ LOWER BOUND ============ -->
+<section id="lbound">
+  <h2><span class="num">7</span> Cota inferior para ordenamientos por comparación</h2>
+  <p class="lead">¿Se puede ordenar comparando elementos más rápido que n log n? <strong>No.</strong> Este es el argumento:</p>
+
+  <div class="steps">
+    <article class="box step">
+      <span class="stepnum">1</span>
+      <p>El número de permutaciones de <em>n</em> ítems es <strong>n! = n·(n−1)·(n−2)·…·3·2·1</strong>. El ordenamiento debe distinguir cuál de ellas es la entrada.</p>
+    </article>
+    <article class="box step">
+      <span class="stepnum">2</span>
+      <p>Un algoritmo que usa un <strong>árbol de decisión</strong> (cada nodo es una comparación a&lt;b con respuesta T/F, que divide los casos posibles) tiene <strong>n! hojas</strong>. Como el árbol binario halla una hoja en ≥ log(n!) pasos, hace <strong>Ω(log(n!))</strong> comparaciones.</p>
+      <p class="small">Ej.: con 3 elementos (abc, acb, bac, bca, cab, cba) las comparaciones a&lt;b, a&lt;c, b&lt;c separan las 6 permutaciones hasta llegar a una hoja.</p>
+    </article>
+    <article class="box step">
+      <span class="stepnum">3</span>
+      <p><strong>log(n!) ∈ Θ(n log n)</strong>:</p>
+      <ul>
+        <li><strong>Cota superior:</strong> n! ≤ nⁿ ⇒ log(n!) ≤ n·log n ⇒ log(n!) ∈ O(n log n).</li>
+        <li><strong>Cota inferior:</strong> n! ≥ n·(n−1)·…·⌈(n+1)/2⌉ ≥ ⌈n/2⌉^⌈n/2⌉ (hay ⌈n/2⌉ factores, todos ≥ n/2) ⇒ n! ≥ (n/2)^(n/2) ⇒ log(n!) ≥ (n/2)·log(n/2) ⇒ log(n!) ∈ Ω(n log n).</li>
+      </ul>
+    </article>
+  </div>
+
+  <article class="box accent-green">
+    <h3>✅ Consecuencia</h3>
+    <p>Todo algoritmo de ordenamiento por comparación realiza <strong>Ω(n log n)</strong> comparaciones. <strong>Introsort, Quicksort, Merge sort y Heap sort son eficientes</strong> (alcanzan esa cota; quicksort en el caso promedio).</p>
+  </article>
+</section>
+
+<!-- ============ TABLA ============ -->
+<section id="tabla">
+  <h2><span class="num">8</span> Tabla comparativa</h2>
+  <div class="tablewrap">
+  <table class="tbl big">
+    <thead><tr><th>Algoritmo</th><th>Estable</th><th>In-place</th><th>Tiempo</th><th>Espacio</th></tr></thead>
+    <tbody>
+      <tr><td>Selection sort</td><td class="no">no</td><td class="yes">sí</td><td>n²</td><td>1</td></tr>
+      <tr><td>Insertion sort</td><td class="yes">sí</td><td class="yes">sí</td><td>n ↔ n²</td><td>1</td></tr>
+      <tr><td>Heap sort</td><td class="no">no</td><td class="yes">sí</td><td>n log n</td><td>1</td></tr>
+      <tr><td>Merge sort</td><td class="yes">sí</td><td class="no">no</td><td>n log n</td><td>n</td></tr>
+      <tr><td>Quicksort</td><td class="no">no</td><td class="yes">sí</td><td>n log n ↔ n²</td><td>log n</td></tr>
+      <tr><td>Introsort</td><td class="no">no</td><td class="yes">sí</td><td>n log n</td><td>log n</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small">«n ↔ n²» significa mejor caso ↔ peor caso. La lámina sugiere consultar <a href="http://en.wikipedia.org/wiki/Sorting_algorithm" target="_blank" rel="noopener">en.wikipedia.org/wiki/Sorting_algorithm</a> y componer tu propia tabla.</p>
+
+  <article class="box">
+    <h3>🧠 Regla rápida para elegir</h3>
+    <ul>
+      <li><strong>Necesito estabilidad</strong> → Merge sort (o Insertion sort si es pequeño / casi ordenado).</li>
+      <li><strong>Poca memoria extra y garantía O(n log n)</strong> → Heap sort.</li>
+      <li><strong>Rapidez general en la práctica</strong> → Quicksort (o mejor, Introsort, que evita el peor caso).</li>
+      <li><strong>Entrada pequeña o casi ordenada</strong> → Insertion sort.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- ============ TAREA ============ -->
+<section id="tarea">
+  <h2><span class="num">9</span> Tarea en Moodle: implementar y medir</h2>
+  <article class="box">
+    <ul>
+      <li>Tarea <strong>personal</strong> (revisar Moodle). Seguir el <strong>código de ejemplo</strong> y la <strong>plantilla de informe</strong>.</li>
+      <li>Implementar: <strong>Insertion sort, Selection sort, Heap sort, Merge sort</strong> (iterativo y recursivo) y <strong>Quicksort</strong> (particiones de Hoare y de Lomuto).</li>
+      <li>Registrar para cada tamaño <em>n</em>: <strong>tiempo, número de comparaciones, swaps, lecturas y escrituras</strong>.</li>
+      <li>Analizar y reportar resultados (comparar también solo el <strong>tiempo</strong> contra <code>std::sort</code>).</li>
+      <li><strong>Bonus «A»:</strong> implementar y comparar <strong>Introsort</strong> (con los parámetros de <code>std::sort</code>).</li>
+      <li>La gráfica de ejemplo es log-log: número de comparaciones (10⁰–10¹⁴) vs. número de elementos (10¹–10⁹); la curva O(n²) crece mucho más rápido que las O(n log n).</li>
+    </ul>
+  </article>
+</section>
+
+<!-- ============ TARJETAS ============ -->
+<section id="tarjetas">
+  <h2><span class="num">★</span> Tarjetas de preguntas</h2>
+  <p class="lead">Haz clic (o Enter) sobre una tarjeta para ver la respuesta. Intenta responder primero mentalmente.</p>
+
+  <div class="controls">
+    <div class="filters" id="filters"></div>
+    <div class="actions">
+      <button id="shuffle" type="button">🔀 Mezclar</button>
+      <button id="flipall" type="button">👁 Mostrar todas</button>
+      <button id="reset" type="button">↺ Reiniciar</button>
+    </div>
+  </div>
+  <p id="counter" class="counter" aria-live="polite"></p>
+
+  <div id="cards" class="cards"></div>
+</section>
+
+</main>
+
+<footer>
+  <p>Resumen elaborado a partir de las láminas «Sorting Algorithms» (UNSA, septiembre 2024). Úsalo como apoyo: las láminas del curso y tus apuntes de clase son la referencia principal.</p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- Colorear ♥ y ♦ de rojo en los elementos .deck ---- */
+  document.querySelectorAll('.deck').forEach(function (el) {
+    el.innerHTML = el.innerHTML.replace(/([0-9AKQJ]+[♥♦])/g, '<span class="r">$1</span>');
+  });
+
+  /* ---- Datos de las tarjetas ---- */
+  var cards = [
+    {t:'General', q:'¿Qué es ordenar (sorting) y por qué es importante?',
+     a:'Es reorganizar elementos (números, palabras, cadenas, objetos…) en un cierto orden. Se usa en bases de datos (por nombre o nota), buscadores (relevancia), tiendas (precio) y es parte fundamental de otros algoritmos: búsqueda binaria, Kruskal para MST, Graham para convex hull.'},
+    {t:'General', q:'¿Qué diferencia hay entre ordenamiento por comparación y por distribución?',
+     a:'El de comparación ordena comparando elementos entre sí (ej.: ordenar números de forma no decreciente); es el tema de la clase. El de distribución ordena repartiendo los elementos (ej.: distribuir cartas por palo).'},
+    {t:'General', q:'¿Qué significa que un algoritmo de ordenamiento sea eficiente, adaptativo, in-place y estable?',
+     a:'Eficiente: ordena n elementos en O(n log n). Adaptativo: aprovecha el orden existente (más rápido si la entrada está casi ordenada). In-place: usa a lo sumo O(log n) de espacio adicional. Estable: mantiene el orden relativo de elementos con claves iguales.'},
+    {t:'General', q:'Entrada {5♥, 3♣, 8♣, 2♦, 5♠}: ¿cuál es la salida estable y cuál no?',
+     a:'Estable: {2♦, 3♣, 5♥, 5♠, 8♣} (5♥ sigue antes que 5♠). No estable: {2♦, 3♣, 5♠, 5♥, 8♣} (los dos 5 se invirtieron).'},
+    {t:'Insertion', q:'Describe Insertion sort y su invariante.',
+     a:'Parte de S vacía. Para cada x de I: se quita x de I, se busca su posición ordenada en S y se inserta ahí. Invariante: S está ordenada y contiene los elementos que se han quitado de I. Es como ordenar cartas en la mano.'},
+    {t:'Insertion', q:'¿Cuál es el peor caso de Insertion sort y por qué?',
+     a:'O(n²). Las operaciones más caras son buscar e insertar (líneas 4 y 5): con un arreglo cuesta O(n) desplazar los elementos mayores; con lista enlazada cuesta O(n) hallar la posición. Se repite para n elementos.'},
+    {t:'Insertion', q:'¿Cuál es el mejor caso de Insertion sort y qué papel juegan las inversiones?',
+     a:'Si la entrada ya está ordenada se verifica en Ω(n). Si está casi ordenada, su complejidad es Θ(n + i), donde i es el número de inversiones (pares fuera de orden). Por eso es adaptativo.'},
+    {t:'Insertion', q:'¿Cómo se obtiene el caso promedio de Insertion sort?',
+     a:'El número de inversiones i está en [0, n(n−1)/2]. Si una permutación tiene i inversiones, su reversa tiene n(n−1)/2 − i. Promediando ambas: (n(n−1)/2 − i + i)/2 = n(n−1)/4 ∈ O(n²).'},
+    {t:'Insertion', q:'¿Qué es Tree sort y por qué casi no se usa?',
+     a:'Es Insertion sort con S implementado como árbol binario de búsqueda autobalanceado (búsqueda/inserción O(log n)). Insertar todo cuesta O(n log n) y recorrer en orden O(n). Es eficiente pero NO in-place; se usa poco porque el balanceo encarece cada inserción y la notación O oculta una constante alta.'},
+    {t:'Selection', q:'Describe Selection sort y su invariante. ¿Por qué no es estable?',
+     a:'Repite n veces: busca en I el elemento de menor clave, lo quita y lo añade al final de S. Invariante: S está ordenada y contiene los elementos más pequeños quitados de I. Para quitar el menor rápido se hace swap con el primer elemento de I, lo que altera el orden relativo de claves iguales: NO es estable (sí es in-place).'},
+    {t:'Selection', q:'¿Cuál es la complejidad de Selection sort y cuál es su cuello de botella?',
+     a:'O(n²) en peor, mejor y promedio, con arreglo o lista. Buscar el mínimo en un conjunto desordenado cuesta O(n) y se hace n veces; el swap es O(1). El cuello de botella es hallar la menor clave; reemplazar I por una cola de prioridad da Heap sort.'},
+    {t:'Selection', q:'¿Qué es Bubble sort según las láminas?',
+     a:'Un ordenamiento estable «tipo selección» que, en vez de hacer swap, desplaza los demás elementos para reubicar el menor. Esos desplazamientos cuestan O(n) y duplican el costo de Selection sort.'},
+    {t:'Heap', q:'¿Qué es un heap binario y cómo se representa en un arreglo?',
+     a:'Es un árbol binario completo con la propiedad de max-heap (cada padre ≥ sus hijos). En un arreglo con raíz en la posición 1: padre de i = ⌊i/2⌋, hijos = 2i y 2i+1.'},
+    {t:'Heap', q:'Describe el algoritmo Heap sort a nivel general.',
+     a:'1) H = BottomUpMaxHeap(I): se tiran los elementos en un heap y se construye. 2) Se repite n veces: x = RemoveMax(H) y se añade x a S. Invariante: S está ordenada y contiene los elementos más grandes quitados de H.'},
+    {t:'Heap', q:'¿Cómo funciona BottomUpMaxHeap y cuánto cuesta?',
+     a:'Recorre i desde ⌊n/2⌋ hasta 1 llamando SiftUp(H[i]); así repara la propiedad max-heap desde los padres de abajo hasta la raíz. Cuesta Θ(n) (propuesto por Floyd 64, analizado por Paparrizos 12).'},
+    {t:'Heap', q:'¿Qué hace SiftUp en las láminas?',
+     a:'Si H[i] tiene hijo, toma el hijo máximo; si H[i] < ese hijo, hace swap y llama SiftUp sobre la posición del hijo. Repara la propiedad max-heap intercambiando con el hijo máximo (en la práctica «hunde» el nodo).'},
+    {t:'Heap', q:'¿Cómo trabaja RemoveMax y cuál es la complejidad total de Heap sort?',
+     a:'RemoveMax intercambia la raíz con el último elemento, lo saca y llama SiftUp en la raíz: O(log n). Con n extracciones, Heap sort ∈ O(n log n) en peor, mejor y promedio. Es in-place pero NO estable.'},
+    {t:'Merge', q:'Describe Merge sort. ¿Qué paradigma usa?',
+     a:'Divide y vencerás: si I tiene un elemento, lo retorna; si no, parte I en I₁ e I₂ con ⌈n/2⌉ y ⌊n/2⌋ elementos, ordena cada una recursivamente y mezcla S₁ y S₂. La partición es trivial; se ordena a través de la mezcla.'},
+    {t:'Merge', q:'¿Cómo funciona la operación Merge y cuánto cuesta?',
+     a:'Compara los frentes de dos listas ordenadas S₁ y S₂: mueve el menor (si S₁.front() ≤ S₂.front() mueve el de S₁) a S; cuando una se vacía, concatena el resto. Cuesta O(n). Es natural para listas enlazadas y usa memoria adicional en arreglos.'},
+    {t:'Merge', q:'¿Por qué Merge sort es O(n log n) en todos los casos?',
+     a:'El árbol de subproblemas tiene 1 + ⌈log n⌉ niveles y en cada nivel el costo total de mezclar es cn (2·cn/2, 4·cn/4, …). Total: (1 + ⌈log n⌉)·cn ∈ O(n log n) para peor, mejor y promedio.'},
+    {t:'Merge', q:'¿Merge sort es estable? ¿Es in-place? ¿Qué es su versión iterativa?',
+     a:'Es estable pero NO in-place (espacio O(n)). La versión iterativa corta la entrada en n listas de tamaño 1 y mezcla listas de tamaño 2^i, duplicando el tamaño en cada pasada.'},
+    {t:'Quicksort', q:'Describe el Quicksort general.',
+     a:'Elige un pivote v; parte I en I₁ (claves ≤ v) e I₂ (claves ≥ v; las iguales a v pueden ir en cualquiera); ordena ambas recursivamente y concatena. Divide y vencerás con unión trivial: se ordena a través de la partición.'},
+    {t:'Quicksort', q:'Explica la partición de Lomuto.',
+     a:'pivot = A[low]; i = low+1; para j de i a high, si A[j] ≤ pivot hace swap(A[i],A[j]) e i++; al final swap(A[i−1],A[low]) y retorna middle = i−1. Invariantes: a la izquierda de i hay claves ≤ pivot; de i a j−1 hay claves > pivot. middle es la posición final del pivote; caso promedio n/2 swaps.'},
+    {t:'Quicksort', q:'Explica la partición de Hoare.',
+     a:'pivot = A[low]; en un loop, low avanza mientras A[low] < pivot y high retrocede mientras A[high] > pivot; si low < high hace swap y mueve ambos; si no, retorna middle = high. Invariantes: a la izquierda de low hay claves ≤ pivot y a la derecha de high claves ≥ pivot. Peor caso n/2 swaps.'},
+    {t:'Quicksort', q:'¿Cuáles son el mejor y el peor caso de Quicksort?',
+     a:'Mejor: pivote perfecto siempre (partición balanceada) → O(n log n), similar a Merge sort. Peor: pivote siempre el menor o el mayor elemento (o todas las claves iguales con Lomuto) → O(n²) y recursión de profundidad O(n).'},
+    {t:'Quicksort', q:'¿Cómo se justifica el caso promedio O(n log n) de Quicksort?',
+     a:'Con pivote aleatorio hay 50 % de probabilidad de una partición buena (entre 1/4 y 3/4). La partición promedio es 1/4–3/4, la profundidad promedio es 2·log_{4/3} n y cada nivel tiene a lo sumo n elementos → O(n log n), con otras constantes ocultas.'},
+    {t:'Quicksort', q:'¿Es Quicksort estable e in-place? ¿Cuánta memoria extra usa?',
+     a:'Es in-place pero NO estable. Usa O(log n) adicional para la pila (recursiva o iterativa). Para un ordenamiento estable, Merge sort es mejor.'},
+    {t:'Quicksort', q:'Menciona las mejoras de Quicksort para claves iguales, elección de pivote y subarreglos pequeños.',
+     a:'Claves iguales: partición en tres vías (bandera holandesa, Dijkstra 76). Pivote: mediana de tres, pseudomediana de nueve [Ben93], dual-pivot [Yar09] (bueno con claves repetidas). Subarreglos pequeños: cambiar a insertion sort (usado en std::sort de GNU C++ y en el sort de Java 7).'},
+    {t:'Quicksort', q:'¿Qué es Introsort y cómo evita el peor caso de Quicksort?',
+     a:'Es un híbrido: quicksort con pivote por mediana de tres que, si la profundidad de recursión supera 2⌊log₂ n⌋, cambia a Heap sort (siempre O(n log n)); y si hay menos de un umbral de ítems (16 como referencia; GCC 16, LLVM 30|6, Java 14) cambia a Insertion sort. Resultado: O(n log n) garantizado, in-place, no estable.'},
+    {t:'Cota inferior', q:'¿Cuál es la cota inferior de los ordenamientos por comparación y cómo se demuestra?',
+     a:'Ω(n log n) comparaciones. Hay n! permutaciones posibles; un árbol de decisión que las distinga tiene n! hojas, por lo que hace Ω(log(n!)) comparaciones; y log(n!) ∈ Θ(n log n).'},
+    {t:'Cota inferior', q:'Demuestra que log(n!) ∈ Θ(n log n).',
+     a:'Cota superior: n! ≤ nⁿ ⇒ log(n!) ≤ n log n. Cota inferior: n! tiene ⌈n/2⌉ factores ≥ n/2, así n! ≥ (n/2)^(n/2) ⇒ log(n!) ≥ (n/2)·log(n/2) ∈ Ω(n log n). Juntas: Θ(n log n).'},
+    {t:'Comparativa', q:'Completa la tabla (estable, in-place, tiempo, espacio) de Selection, Insertion, Heap, Merge, Quick e Intro.',
+     a:'Selection: no, sí, n², 1. Insertion: sí, sí, n↔n², 1. Heap: no, sí, n log n, 1. Merge: sí, no, n log n, n. Quicksort: no, sí, n log n↔n², log n. Introsort: no, sí, n log n, log n.'},
+    {t:'Comparativa', q:'¿Qué algoritmo elegirías si necesitas estabilidad? ¿Y si necesitas poca memoria con garantía O(n log n)?',
+     a:'Estabilidad: Merge sort (O(n log n), a costa de O(n) de memoria) o Insertion sort para entradas pequeñas o casi ordenadas. Poca memoria con garantía O(n log n): Heap sort (in-place) o Introsort.'},
+    {t:'Tarea', q:'¿Qué debe implementarse y medirse en la tarea de Moodle?',
+     a:'Insertion, Selection, Heap, Merge (iterativo y recursivo) y Quicksort (Hoare y Lomuto). Para cada tamaño n se registran tiempo, comparaciones, swaps, lecturas y escrituras; se analizan resultados y se compara el tiempo con std::sort. Bonus «A»: Introsort con los parámetros de std::sort.'}
+  ];
+
+  var container = document.getElementById('cards');
+  var filtersEl = document.getElementById('filters');
+  var counter = document.getElementById('counter');
+  var current = 'Todas';
+  var order = cards.map(function (_, i) { return i; });
+
+  function colorDeck(s) {
+    return s.replace(/([0-9AKQJ]+[♥♦])/g, '<span class="r">$1</span>');
+  }
+
+  function render() {
+    container.innerHTML = '';
+    var shown = 0;
+    order.forEach(function (idx) {
+      var c = cards[idx];
+      if (current !== 'Todas' && c.t !== current) return;
+      shown++;
+      var el = document.createElement('div');
+      el.className = 'card';
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-pressed', 'false');
+      el.innerHTML =
+        '<div class="card-inner">' +
+          '<div class="face front"><span class="badge">' + c.t + ' · ' + (idx + 1) + '</span>' +
+          '<p class="qtext">' + colorDeck(c.q) + '</p><span class="hint">Toca para ver la respuesta</span></div>' +
+          '<div class="face back"><span class="badge">Respuesta</span>' +
+          '<p class="atext">' + colorDeck(c.a) + '</p></div>' +
+        '</div>';
+      function toggle() {
+        var f = el.classList.toggle('flipped');
+        el.setAttribute('aria-pressed', f ? 'true' : 'false');
+      }
+      el.addEventListener('click', toggle);
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+      container.appendChild(el);
+    });
+    counter.textContent = 'Mostrando ' + shown + ' de ' + cards.length + ' tarjetas';
+  }
+
+  var topics = ['Todas'];
+  cards.forEach(function (c) { if (topics.indexOf(c.t) === -1) topics.push(c.t); });
+  topics.forEach(function (t) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = t;
+    if (t === current) b.classList.add('active');
+    b.addEventListener('click', function () {
+      current = t;
+      filtersEl.querySelectorAll('button').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      render();
+    });
+    filtersEl.appendChild(b);
+  });
+
+  document.getElementById('shuffle').addEventListener('click', function () {
+    for (var i = order.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    }
+    render();
+  });
+  document.getElementById('flipall').addEventListener('click', function () {
+    var all = container.querySelectorAll('.card');
+    var anyHidden = Array.prototype.some.call(all, function (c) { return !c.classList.contains('flipped'); });
+    all.forEach(function (c) { c.classList.toggle('flipped', anyHidden); });
+    this.textContent = anyHidden ? '🙈 Ocultar todas' : '👁 Mostrar todas';
+  });
+  document.getElementById('reset').addEventListener('click', function () {
+    order = cards.map(function (_, i) { return i; });
+    current = 'Todas';
+    filtersEl.querySelectorAll('button').forEach(function (x, i) { x.classList.toggle('active', i === 0); });
+    document.getElementById('flipall').textContent = '👁 Mostrar todas';
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

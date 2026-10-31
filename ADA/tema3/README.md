@@ -1,0 +1,3 @@
+Resumen: cubre todo el PDF de Sorting Algorithms en secciones con analogías (por ejemplo, ordenar cartas en la mano). Incluye pseudocódigos, trazas con las cartas del PDF, complejidades, la prueba de la cota inferior, la tabla comparativa y la tarea de Moodle. Los materiales de estudio están en un desplegable.
+
+Tarjetas: son 34 preguntas, algo más de las 30 pedidas. Se voltean con clic o Enter y puedes filtrarlas por tema, mezclarlas y mostrar todas las respuesta
