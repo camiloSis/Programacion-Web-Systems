@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algoritmos en grafos · Resumen y tarjetas</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">UNSA · Análisis y Diseño de Algoritmos · CONT2 · Tema 4</p>
+    <h1>Algoritmos en grafos</h1>
+    <p class="subtitle">Árbol de expansión de costo mínimo y caminos más cortos</p>
+    <p class="meta">Prof. Alexander J. Benavides · Prof. Marcela Quispe Cruz · Prof. Manuel Loaiza<br>Escuela Profesional de Ingeniería de Sistemas · Septiembre 2024</p>
+    <div class="warning">
+      <b>Advertencia del curso:</b> tome apuntes; estas láminas no necesariamente tienen sentido fuera del aula.
+      <b>Recuerde:</b> lo más importante es entender los métodos; traducir a C++ es secundario.
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Secciones">
+  <a href="#intro">Inicio</a>
+  <a href="#grafos">1 Grafos</a>
+  <a href="#repr">2 Representación</a>
+  <a href="#mst">3 MST</a>
+  <a href="#boruvka">4 Borůvka</a>
+  <a href="#jarnik">5 Jarník</a>
+  <a href="#kruskal">6 Kruskal</a>
+  <a href="#sp">7 Caminos</a>
+  <a href="#dijkstra">8 Dijkstra</a>
+  <a href="#floyd">9 Floyd</a>
+  <a href="#chuleta">Chuleta</a>
+  <a href="#mnemo">Trucos</a>
+  <a href="#demo">Demo</a>
+  <a href="#tarjetas" class="cta">Tarjetas</a>
+  <a href="#quiz" class="cta">Quiz</a>
+</nav>
+
+<main>
+
+<!-- ===================== INICIO ===================== -->
+<section id="intro">
+  <h2><span class="num">0</span> Presentación y mapa del tema</h2>
+  <p class="lead">Un grafo es “puntos conectados por líneas”. Este tema responde dos preguntas clásicas: <b>¿cómo conectar todo gastando lo mínimo?</b> (árbol de expansión mínimo) y <b>¿cuál es la ruta más barata entre puntos?</b> (camino más corto).</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Objetivos de aprendizaje</h3>
+      <p>Al terminar, el estudiante será capaz de:</p>
+      <ol>
+        <li>Recordar los principales conceptos de teoría de grafos.</li>
+        <li>Comprender los dos problemas más importantes de grafos: el árbol de expansión de costo mínimo y el camino más corto.</li>
+        <li>Aplicar los algoritmos estudiados al problema del árbol de expansión de costo mínimo.</li>
+        <li>Aplicar los algoritmos estudiados al problema del camino más corto.</li>
+        <li>Comprender las ventajas y desventajas de cada algoritmo.</li>
+      </ol>
+    </div>
+    <div class="box accent-b">
+      <h3>Contenido (y orden de esta página)</h3>
+      <ul>
+        <li>Repaso de teoría de grafos y representación en el computador</li>
+        <li><b>MST</b> (Minimal Spanning Tree): Borůvka (1926) · Jarník (1930) = Prim (1957) = Dijkstra (1959) · Kruskal (1956)</li>
+        <li><b>SP</b> (Shortest Path): Dijkstra (1959) · Floyd (1962)</li>
+      </ul>
+      <p class="small">Línea de tiempo: Borůvka 1926 → Jarník 1930 → Kruskal 1956 → Prim 1957 → Dijkstra 1959 → Floyd/Warshall 1962.</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>Cómo estudiar con esta página (ruta sugerida, ~1 hora)</h3>
+    <ol>
+      <li><b>Lee</b> el resumen (secciones 1–9) y mira cada traza con el grafo de ejemplo.</li>
+      <li><b>Repasa</b> la <a href="#chuleta">chuleta</a> y los <a href="#mnemo">trucos mentales</a>.</li>
+      <li><b>Practica</b> en la <a href="#demo">demo paso a paso</a>: antes de pulsar “Siguiente”, intenta adivinar el paso.</li>
+      <li><b>Autoevalúate</b> con las <a href="#tarjetas">tarjetas</a> (marca “Lo sé / Repasar”; se guarda en tu navegador) y con el <a href="#quiz">quiz</a>.</li>
+    </ol>
+  </div>
+
+  <details class="box refs">
+    <summary>Bibliografía y artículos de la lámina</summary>
+    <p><b>Libros:</b></p>
+    <ul>
+      <li>Korte, B. &amp; Vygen, J. (2018). <i>Combinatorial Optimization: Theory and Algorithms</i> (6th Ed). Springer. Sc. 2.1, 2.2, 6.1, 7.1, 7.2</li>
+      <li>Goodrich, M.T. &amp; Tamassia, R. (2015). <i>Algorithm Design and Applications</i>. John Wiley &amp; Sons. Sc. 13.1, C.14, 15</li>
+      <li>Skiena, S.S. (2020). <i>The Algorithm Design Manual</i> (3rd Ed). Springer Nature. Sc. 7.1, 7.2, 8.1, 8.3</li>
+      <li>Levitin, A. (2012). <i>Introduction to the Design &amp; Analysis of Algorithms</i> (3rd Ed). Pearson. Sc. 1.4, 8.4, C.9</li>
+      <li>Brassard, G. &amp; Bratley, P. (1996). <i>Fundamentals of Algorithmics</i>. Prentice-Hall. Sc. 5.4, 6.3, 6.4, 8.5</li>
+    </ul>
+    <p><b>Artículos científicos:</b></p>
+    <ul>
+      <li>Borůvka, O. (1926). O jistém problému minimálním. <i>Práce Moravské Přírodovědecké Společnosti</i>, 3, 37-58.</li>
+      <li>Nešetřil, J., Milková, E., &amp; Nešetřilová, H. (2001). Otakar Borůvka on minimum spanning tree problem. <i>Discrete Mathematics</i>, 233(1-3), 3-36.</li>
+      <li>Jarník, V. (1930). O jistém problému minimálním (Z dopisu panu O. Borůvkovi). <i>Práce Moravské Přírodovědecké Společnosti</i>, 6, 57-63.</li>
+      <li>Milková, E. (2007). The Minimum Spanning Tree Problem: Jarník’s solution in historical and present context. <i>Electronic Notes in Discrete Mathematics</i>, 28, 309-316.</li>
+      <li>Kruskal, J. B. (1956). On the shortest spanning subtree of a graph and the traveling salesman problem. <i>Proc. American Mathematical Society</i>, 7(1), 48-50.</li>
+      <li>Prim, R.C. (1957). Shortest connection networks and some generalizations. <i>The Bell System Technical Journal</i>, 36(6), 1389-1401.</li>
+      <li>Dijkstra, E. W. (1959). A note on two problems in connexion with graphs. <i>Numerische Mathematik</i>, 1(1), 269-271.</li>
+      <li>Warshall, S. (1962). A theorem on boolean matrices. <i>Journal of the ACM</i>, 9(1), 11-12.</li>
+      <li>Floyd, R.W. (1962). Algorithm 97: shortest path. <i>Communications of the ACM</i>, 5(6), 345.</li>
+    </ul>
+    <p class="small">En las láminas, las etiquetas [KV18], [GT15], [Lev12], [Ski20] remiten a estos libros.</p>
+  </details>
+</section>
+
+<!-- ===================== 1 GRAFOS ===================== -->
+<section id="grafos">
+  <h2><span class="num">1</span> Repaso de teoría de grafos</h2>
+  <p class="lead">Vocabulario base [KV18]. Piensa en ciudades (vértices) y carreteras (enlaces).</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Grafo</h3>
+      <p class="formula">G = (V, E)</p>
+      <p>V o V(G) ≠ ∅ son los <b>vértices</b>; E o E(G) son los <b>enlaces</b>.</p>
+      <h4>Dirigido</h4>
+      <p>E ⊆ V × V → pares <b>ordenados</b> (u,v). Importa el orden: (u,v) ≠ (v,u).</p>
+      <h4>No dirigido</h4>
+      <p>E ⊆ {X ⊆ V : |X| = 2} → <b>conjuntos</b> {u,v}. No importa el orden: {u,v} = {v,u}.</p>
+      <p class="small">La lámina también nombra: vértices adyacentes, enlaces adyacentes y grado de un vértice (sin definirlos). En el sentido estándar: dos vértices son adyacentes si los une un enlace; dos enlaces lo son si comparten un vértice; el grado es el número de enlaces que tocan al vértice.</p>
+    </div>
+    <div class="box">
+      <h3>Ejemplo de la lámina</h3>
+      <p>Mismo conjunto de vértices V = V′ = {a,b,c,d,e}.</p>
+      <p><b>G (no dirigido):</b> E = {{a,b},{a,d},{b,c},{b,d},{b,e},{c,e},{d,e}}</p>
+      <p><b>G′ (dirigido):</b> E′ = {(a,b),(a,d),(b,c),(b,d),(b,e),(c,e),(d,b),(d,e)}</p>
+      <p class="small">En G′ la pareja (b,d) y (d,b) aparece en ambos sentidos (subrayada en la lámina): son dos enlaces distintos.</p>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <dl class="box defs">
+      <dt>Subgrafo</dt>
+      <dd>H = (V(H), E(H)) de G cuando V(H) ⊆ V(G) y E(H) ⊆ E(G). Es “un pedazo” de G.</dd>
+      <dt>Camino</dt>
+      <dd>P = ({v₁,…,v_k}, {e₁,…,e_{k−1}}) con vᵢ ≠ vⱼ para 1 ≤ i &lt; j ≤ k y eᵢ = {vᵢ, vᵢ₊₁}. Una ruta sin repetir vértices.</dd>
+      <dt>Ciclo</dt>
+      <dd>Camino cerrado: v₁ = v_k. Sales y vuelves al inicio.</dd>
+      <dt>Subgrafo de expansión</dt>
+      <dd>Subgrafo con V(H) = V(G): conserva <i>todos</i> los vértices (puede quitar enlaces).</dd>
+      <dt>Camino hamiltoniano</dt>
+      <dd>Ciclo de expansión, un “tour”: pasa por todos los vértices (así lo escribe la lámina).</dd>
+    </dl>
+    <dl class="box defs">
+      <dt>Grafo conexo</dt>
+      <dd>Existe un camino P de u a v para todo u, v ∈ V. Todo está comunicado con todo.</dd>
+      <dt>Árbol</dt>
+      <dd>Grafo no dirigido, conexo y sin ciclos. Cuatro formas equivalentes de decirlo:
+        <ul>
+          <li>No dirigido, conexo, sin ciclos.</li>
+          <li>Camino <b>único</b> entre cualesquiera u, v ∈ V.</li>
+          <li>Si |V(G)| = n, tiene <b>n − 1</b> enlaces.</li>
+          <li>Adicionar un enlace crearía un ciclo.</li>
+        </ul></dd>
+      <dt>Árbol de expansión</dt>
+      <dd>Subgrafo de expansión (V(H)=V(G)) que además es árbol.</dd>
+      <dt>¿Por qué “árbol”?</dt>
+      <dd>Vértice raíz, vértices hoja, enlaces ramas…</dd>
+      <dt>Bosque</dt>
+      <dd>Conjunto de árboles.</dd>
+    </dl>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Grafo ponderado y grafo de ejemplo (el que se usa en todo el tema)</h3>
+    <p>G = (V, E, c) con función de costo <b>c : E(G) → ℝ</b>. Ejemplo: c(a,b)=7, c(d,e)=15, c(g,f)=11.</p>
+    <p>V = {a,b,c,d,e,f,g} y 11 enlaces: <b>a-b 7 · a-d 5 · b-c 8 · b-d 9 · b-e 7 · c-e 5 · d-e 15 · d-f 6 · e-f 8 · e-g 9 · f-g 11</b>.</p>
+    <p class="small">Puedes verlo dibujado en la <a href="#demo">demo interactiva</a>.</p>
+  </div>
+</section>
+
+<!-- ===================== 2 REPRESENTACION ===================== -->
+<section id="repr">
+  <h2><span class="num">2</span> Representación de grafos en el computador</h2>
+  <p class="lead">Tres formas de guardar el mismo grafo; cambian la memoria y el tiempo de acceso. Δ es el <b>mayor grado</b> del grafo.</p>
+
+  <div class="box">
+    <h3>Matriz de adyacencia W</h3>
+    <div class="tablewrap"><table class="tbl">
+      <tr><th>W</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>f</th><th>g</th></tr>
+      <tr><td><b>a</b></td><td>0</td><td>7</td><td>∞</td><td>5</td><td>∞</td><td>∞</td><td>∞</td></tr>
+      <tr><td><b>b</b></td><td>7</td><td>0</td><td>8</td><td>9</td><td>7</td><td>∞</td><td>∞</td></tr>
+      <tr><td><b>c</b></td><td>∞</td><td>8</td><td>0</td><td>∞</td><td>5</td><td>∞</td><td>∞</td></tr>
+      <tr><td><b>d</b></td><td>5</td><td>9</td><td>∞</td><td>0</td><td>15</td><td>6</td><td>∞</td></tr>
+      <tr><td><b>e</b></td><td>∞</td><td>7</td><td>5</td><td>15</td><td>0</td><td>8</td><td>9</td></tr>
+      <tr><td><b>f</b></td><td>∞</td><td>∞</td><td>∞</td><td>6</td><td>8</td><td>0</td><td>11</td></tr>
+      <tr><td><b>g</b></td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>9</td><td>11</td><td>0</td></tr>
+    </table></div>
+    <p>Diagonal 0; ∞ = no hay enlace. <b>Simétrica</b> si el grafo es no dirigido. <b>Memoria O(|V|²)</b> · <b>Acceso O(1)</b> (saber el costo de un par es mirar una celda).</p>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Lista de adyacencia</h3>
+      <p>Cada vértice tiene una lista enlazada de pares <i>vecino | costo</i>:</p>
+      <pre>a → b|7 → d|5
+b → a|7 → c|8 → d|9 → e|7
+c → b|8 → e|5
+d → a|5 → b|9 → e|15 → f|6
+e → b|7 → c|5 → d|15 → f|8 → g|9
+f → d|6 → e|8 → g|11
+g → e|9 → f|11</pre>
+      <p><b>Memoria O(|V|+|E|)</b> · <b>Acceso O(Δ)</b>. Ideal para grafos <i>dispersos</i>.</p>
+    </div>
+    <div class="box accent-b">
+      <h3>Lista de adyacencia como matriz</h3>
+      <p>Cada fila guarda sus vecinos <b>consecutivos en un arreglo</b>, con una marca final <code>−|∞</code>; las filas tienen ancho Δ.</p>
+      <pre>a: b|7  d|5  −|∞
+b: a|7  c|8  d|9  e|7  −|∞
+c: b|8  e|5  −|∞
+...</pre>
+      <p><b>Memoria O(Δ|V|)</b> · <b>Acceso O(Δ)</b> <i>pero sin cache misses</i> (datos contiguos en memoria).</p>
+      <p class="small">Recuerde: sizeof(void*) == 2 * sizeof(int32). Compare (Δ|V| − 2|E|)·B frente a 2|E|·8B: el arreglo desperdicia celdas vacías, pero la lista enlazada gasta un puntero (8 B) por nodo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3 MST ===================== -->
+<section id="mst">
+  <h2><span class="num">3</span> Árbol de expansión de costo mínimo (MST)</h2>
+  <p class="lead">Quieres conectar todas las ciudades con la menor cantidad de carretera posible, sin dar vueltas inútiles (sin ciclos).</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Definición</h3>
+      <p>Dado G <b>no dirigido</b> y c : E(G) → ℝ, el MST es un árbol T tal que:</p>
+      <ul>
+        <li>no dirigido, conexo, sin ciclos;</li>
+        <li>V(T) = V(G) (<b>recubre</b> todos los vértices);</li>
+        <li><b>costo mínimo</b> (la lámina pregunta “¿40?” para el ejemplo; con los datos del grafo sale <b>39</b>).</li>
+      </ul>
+      <p><b>¿Cómo construir un MST?</b> Idea de decisión golosa, repetida:</p>
+      <p class="formula">Añadir el enlace que tenga costo mínimo y que no produzca ciclos</p>
+    </div>
+    <div class="box accent-green">
+      <h3>Los tres algoritmos de un vistazo</h3>
+      <ul>
+        <li><b>Borůvka (1926)</b> — en checo. Añade el enlace más corto que sale de <i>cada</i> árbol; une varios árboles en cada paso. Es la base de Jarník y Kruskal.</li>
+        <li><b>Jarník (1930)</b> — en checo. Expande <i>un solo</i> árbol añadiendo el vértice más cercano en cada paso.</li>
+        <li><b>Kruskal (1956)</b>. Une <i>dos</i> árboles cercanos añadiendo el enlace más corto.</li>
+        <li><b>Prim (1957)</b> y <b>Dijkstra (1959)</b> reinventaron de forma independiente el algoritmo de Jarník.</li>
+      </ul>
+      <p>Los tres consumen tiempo <b>O(|E| log |V|)</b>. Borůvka y Kruskal usan memoria O(|E|). Dijkstra (1959) aclara que Jarník usa menos memoria: O(|V|).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4 BORUVKA ===================== -->
+<section id="boruvka">
+  <h2><span class="num">4</span> MST: algoritmo de Borůvka (1926)</h2>
+  <p class="lead">Idea: <b>añadir el enlace más corto que sale de cada árbol</b>. Imagina que cada pueblo (árbol) estira su carretera más barata hacia algún vecino, <i>todos a la vez</i>.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Pasos</h3>
+      <ol>
+        <li>Crear un bosque T con todos los vértices pero sin enlaces; cada vértice es un árbol trivial.</li>
+        <li>Para cada árbol t ∈ T, seleccionar el enlace e = (u,v) con c(e) mínimo, con u ∈ G(t) y v ∉ G(t).</li>
+        <li>Agregar todos los enlaces e seleccionados a E(T) (colorearlos).</li>
+        <li>Si |E(T)| &lt; |V(T)| − 1, repetir desde el paso 2.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>Pseudocódigo</h3>
+<pre class="algo">Require: grafo G = (V, E, c)
+Ensure:  MST T de G
+1: T = (V(G), ∅)
+2: while |E(T)| &lt; |V(T)| − 1 do
+3:   for each t ∈ T do
+4:     elegir e = (u,v) con u ∈ V(t), v ∉ V(t)
+       y c(e) mínimo
+5:   agregar los e elegidos a E(T)</pre>
+      <p><b>Supuesto:</b> todos los enlaces tienen costos diferentes. Sirve “para evitar” el caso en que varios árboles elijan enlaces que cierran un ciclo entre ellos (el dibujo rojo de la lámina).</p>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Cómo se ve la ejecución (láminas)</h3>
+    <p>Empiezas con muchos vértices sueltos (árboles triviales). En la primera ronda cada uno elige su enlace más corto y se forman pares y pequeños grupos; en la ronda siguiente esos grupos eligen de nuevo y se fusionan en grupos más grandes; así hasta quedar <b>un único árbol</b>. En el ejemplo de la lámina el número de árboles baja 4 → 1 en las últimas rondas.</p>
+  </div>
+
+  <div class="box accent-b">
+    <h3>Análisis [GT15]</h3>
+    <ul>
+      <li><b>Líneas 3–4</b> (buscar el enlace mínimo de cada t): identificar componentes conexos t ∈ T y marcar vértices del mismo componente con búsqueda en profundidad: <b>O(|V|)</b>; revisar los |E| enlaces en la lista de adyacencia marcando el e mínimo de cada t.</li>
+      <li><b>Línea 5</b> (añadir los enlaces marcados): <b>O(|E|)</b>.</li>
+      <li>El ciclo de la línea 2 se repite <b>O(log |V|)</b> veces (cada ronda reduce el número de árboles).</li>
+    </ul>
+    <p class="formula">∴ Borůvka ∈ O(|E| log |V|)</p>
+  </div>
+</section>
+
+<!-- ===================== 5 JARNIK ===================== -->
+<section id="jarnik">
+  <h2><span class="num">5</span> MST: algoritmo de Jarník (1930), Prim (1957), Dijkstra (1959)</h2>
+  <p class="lead">Idea: <b>añadir el enlace más corto que no genere ciclos a un único árbol T</b>. Es como una mancha de aceite: parte de un punto y se traga siempre lo más cercano a la mancha.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Pasos</h3>
+      <ol>
+        <li>Escoger una raíz v₀ para el árbol T.</li>
+        <li>Escoger el enlace e = (u,v) con c(e) mínimo, u ∈ V(T) y v ∉ V(T).</li>
+        <li>Agregar e al árbol T.</li>
+        <li>Si |E(T)| &lt; |V(T)| − 1, repetir desde el paso 2.</li>
+      </ol>
+      <p><b>Versión básica (pseudocódigo):</b></p>
+<pre class="algo">1: elegir v₀ ∈ V(G)
+2: T = ({v₀}, ∅)
+3: while V(T) ≠ V(G) do
+4:   e = (u,v) ∈ E(G) de peso mínimo
+     con u ∈ V(T) y v ∉ V(T)
+5:   T = T + e   (V(T) ∪ {v}, E(T) ∪ {(u,v)})</pre>
+      <p>Pregunta de la lámina: <i>¿cómo determinar la frontera eficientemente?</i> Es decir, ¿cómo saber para cada (u,v) si u ∈ V(T) y v ∉ V(T)? La respuesta es la versión con d, p y Q de abajo.</p>
+    </div>
+    <div class="box">
+      <h3>Versión eficiente [GT15]</h3>
+<pre class="algo">1:  elegir v₀ ∈ V(G)
+2:  d(v₀) = 0
+3:  d(u) = ∞  ∀u ∈ V(G) \ {v₀}
+4:  Q = V(G) y T = (∅, ∅)
+5:  while Q ≠ ∅ do
+6:    v = el de Q con d_v mínimo
+7:    Q = Q \ {v};  T = T + (v, p_v)
+8:    for u ∈ Q : (v,u) ∈ E(G) do
+9:      if d_u &gt; c((v,u)) then
+10:       d_u = c((v,u))
+11:       p_u = v</pre>
+      <ul>
+        <li><b>d_v</b>: costo del mejor enlace conocido que conecta v con el árbol.</li>
+        <li><b>p_v</b>: el vértice del árbol al que se conectaría v.</li>
+        <li><b>Q</b>: vértices que aún no están en el árbol (v ∈ Q = true).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Traza en el grafo de ejemplo (raíz v₀ = d)</h3>
+    <div class="tablewrap"><table class="trace">
+      <tr><th>Paso</th><th>Sale de Q</th><th>Actualiza (d, p)</th><th>Enlace agregado</th></tr>
+      <tr><td>0</td><td>—</td><td>d_d = 0; resto ∞</td><td>—</td></tr>
+      <tr><td>1</td><td>d (0)</td><td>a=5(d), b=9(d), e=15(d), f=6(d)</td><td>—</td></tr>
+      <tr><td>2</td><td>a (5)</td><td>b=7(a)</td><td>(d,a)</td></tr>
+      <tr><td>3</td><td>f (6)</td><td>e=8(f), g=11(f)</td><td>(d,f)</td></tr>
+      <tr><td>4</td><td>b (7)</td><td>e=7(b), c=8(b)</td><td>(a,b)</td></tr>
+      <tr><td>5</td><td>e (7)</td><td>c=5(e), g=9(e)</td><td>(b,e)</td></tr>
+      <tr><td>6</td><td>c (5)</td><td>—</td><td>(e,c)</td></tr>
+      <tr><td>7</td><td>g (9)</td><td>—</td><td>(e,g)</td></tr>
+    </table></div>
+    <p class="small">Las láminas muestran los pasos 0–3 y la tabla final (a 5 d · b 7 a · c 5 e · d 0 · e 7 b · f 6 d · g 9 e); los pasos 4–7 los obtuve aplicando el mismo pseudocódigo y coinciden con esa tabla final.</p>
+    <p class="formula">T = ({d,a,f,b,e,c,g}, {(d,a),(d,f),(a,b),(b,e),(e,c),(e,g)}) → peso 5+6+7+7+5+9 = 39</p>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-b">
+      <h3>Correctitud [Lev12]</h3>
+      <ul>
+        <li><b>Caso base:</b> v₀ es un MST trivial.</li>
+        <li><b>Inducción:</b> asume que T_{i−1} es parte de un MST y que la línea 4 elige e_i.</li>
+        <li><b>Contradicción:</b> si T_i = T_{i−1} + e_i no fuese parte de un MST, existiría e′_i con c(e′_i) &lt; c(e_i), pero la línea 4 habría elegido e′_i.</li>
+      </ul>
+    </div>
+    <div class="box accent-b">
+      <h3>Análisis [Lev12]</h3>
+      <p>Memoria ∈ O(|V|). El ciclo de la línea 5 se repite |V| veces.</p>
+      <ul>
+        <li><b>G denso, en matriz</b> (|E| ∈ O(|V|²)): líneas 5+8+9 ∈ O(|V|²). Si Q es <b>arreglo</b>, líneas 5+6 ∈ O(|V|²) → <b>Jarník ∈ O(|V|²)</b>.</li>
+        <li><b>G disperso, en lista</b> (|E| ∈ O(Δ|V|)): líneas 5+8+9 ∈ O(|E|). Si Q es <b>heap</b>, líneas 5+6 ∈ O(|V| log |V|). Si d_u cambia (líneas 10-11), actualizar cada d_u en Q cuesta O(log |V|).</li>
+      </ul>
+      <p class="formula">∴ Jarník ∈ O(|E| log |V|) ⊆ O(Δ|V| log |V|)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 6 KRUSKAL ===================== -->
+<section id="kruskal">
+  <h2><span class="num">6</span> MST: algoritmo de Kruskal (1956)</h2>
+  <p class="lead">Idea: <b>añadir el enlace más corto que no genere ciclos y que conecte a los dos árboles más cercanos</b>. Ordenas todas las carreteras de la más barata a la más cara y las vas aceptando mientras no cierren un lazo.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Pasos</h3>
+      <ol>
+        <li>Crear un bosque T con todos los vértices pero sin enlaces (cada vértice es un árbol trivial).</li>
+        <li>Escoger un enlace e = (u,v) con c(e) mínimo y que no produzca un ciclo en T; es decir, aún no hay camino entre u y v.</li>
+        <li>Agregar e a E(T).</li>
+        <li>Si |E(T)| &lt; |V(T)| − 1, repetir desde el paso 2.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>Pseudocódigo [GT15]</h3>
+<pre class="algo">1: ordenar enlaces: c(e₁) ≤ c(e₂) ≤ … ≤ c(e_m)
+2: r_v = v   ∀v ∈ V(G)
+3: T = (V(G), ∅);  i = 1
+4: while |E(T)| &lt; |V(T)| − 1 do
+5:   elegir e_i = (u,v);  i = i + 1
+6:   if r_u ≠ r_v then      (no hay ciclo)
+7:     T = T + e_i
+8:     r_k = r_v  ∀ r_k = r_u</pre>
+      <p><b>r_v</b> es la <i>etiqueta del árbol</i> de v: dos vértices con la misma etiqueta ya están conectados.</p>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Traza en el grafo de ejemplo</h3>
+    <div class="tablewrap"><table class="trace">
+      <tr><th>Enlace (costo)</th><th>¿r_u ≠ r_v?</th><th>Acción</th><th>Etiquetas tras el paso (a b c d e f g)</th></tr>
+      <tr><td>—</td><td>—</td><td>inicio</td><td>a b c d e f g</td></tr>
+      <tr><td>(a,d) 5</td><td>sí</td><td>agrega</td><td>d b c d e f g</td></tr>
+      <tr><td>(e,c) 5</td><td>sí</td><td>agrega</td><td>d b c d c f g</td></tr>
+      <tr><td>(f,d) 6</td><td>sí</td><td>agrega</td><td>d b c d c d g</td></tr>
+      <tr><td>(b,e) 7</td><td>sí</td><td>agrega</td><td>d c c d c d g</td></tr>
+      <tr><td>(a,b) 7</td><td>sí</td><td>agrega (une {a,d,f} con {b,c,e})</td><td>c c c c c c g</td></tr>
+      <tr><td>(b,c) 8 · (e,f) 8 · (b,d) 9</td><td>no</td><td>se descartan (ciclo)</td><td>sin cambios</td></tr>
+      <tr><td>(g,e) 9</td><td>sí</td><td>agrega</td><td>c c c c c c c</td></tr>
+    </table></div>
+    <p class="small">Las láminas muestran las altas (agregados) con sus tablas de etiquetas; los descartes entre (a,b) y (g,e) los deduje al aplicar el algoritmo (esos tres enlaces cerrarían un ciclo).</p>
+    <p class="formula">T = ({a…g}, {(a,d),(c,e),(d,f),(b,e),(a,b),(g,e)}) → peso 39</p>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-b">
+      <h3>Correctitud</h3>
+      <ul>
+        <li><b>Caso base:</b> cada v ∈ V(T) es un MST trivial.</li>
+        <li><b>Inducción:</b> asume que T_u y T_v son parte de un MST y que la línea 5 elige e_i.</li>
+        <li><b>Contradicción:</b> si T_i = T_u ∪ T_v + e_i no fuese parte de un MST, ∃ e′_i con c(e′_i) &lt; c(e_i), pero la línea 5 habría elegido e′_i.</li>
+      </ul>
+    </div>
+    <div class="box accent-b">
+      <h3>Análisis [Lev12, Ski20]</h3>
+      <ul>
+        <li>Memoria ∈ O(|E|) ⊆ O(|V|² + Δ|V|).</li>
+        <li>Ordenar (línea 1) ∈ O(|E| log |E|); como |E| ∈ O(|V|²), es O(|E| log |V|).</li>
+        <li>No hace falta ordenar todo: con una <b>heap</b> (líneas 4+5) también O(|E| log |V|).</li>
+        <li>Si r es <b>array</b>: comparar r_u ≠ r_v es O(1); actualizar (línea 8) es O(|V|).</li>
+        <li>Si r es <b>union-find</b> (con path compression): comparar es O(log |V|); actualizar es O(1).</li>
+        <li>El ciclo de la línea 4 se repite O(|E|) veces.</li>
+      </ul>
+      <p class="formula">∴ Kruskal ∈ O(|E| log |V|)</p>
+    </div>
+  </div>
+
+  <div class="box accent-a">
+    <h3>Estructura Union-Find [GT15, Sc. 7.3]</h3>
+    <p>Mantiene <b>conjuntos disjuntos</b> como árboles guardados en un arreglo de padres (la raíz se apunta a sí misma).</p>
+    <p>Ejemplo de la lámina, arreglo para los nodos 1..9: <code>[4, 3, 3, 4, 3, 4, 1, 5, 7]</code> (dos conjuntos: raíces 3 y 4).</p>
+    <ul>
+      <li><b>Union:</b> la raíz de un árbol pasa a apuntar a la raíz del otro. Si la raíz 4 apunta a 3: <code>[4, 3, 3, <b>3</b>, 3, 4, 1, 5, 7]</code>.</li>
+      <li><b>Find(9):</b> subir por los padres: 9 → 7 → 1 → 4 → 3. La raíz 3 es el representante.</li>
+      <li><b>Path compression:</b> después del find, los nodos del camino (1, 7, 9, …) apuntan directo a 3: <code>[<b>3</b>, 3, 3, 3, 3, 4, <b>3</b>, 5, <b>3</b>]</code>. Los próximos find son casi instantáneos.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 7 SP ===================== -->
+<section id="sp">
+  <h2><span class="num">7</span> Camino más corto (SP: Shortest Path)</h2>
+  <p class="lead">Ahora no buscas conectar todo, sino ir de <b>u a v</b> pagando lo mínimo.</p>
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Definición</h3>
+      <p>Dado G y c : E(G) → ℝ, el <b>shortest path</b> es el camino entre u y v de <b>costo mínimo</b>.</p>
+      <p><b>¿Cómo seleccionar un SP?</b></p>
+    </div>
+    <div class="box accent-b">
+      <h3>Idea: subestructura óptima</h3>
+      <p>Un camino más corto está hecho de caminos más cortos. Pregunta de la lámina: “el camino más corto de a a c, ¿pasa por b?” (con a-b = 6, a-c = 10 y b-c desconocido: depende de cuánto cueste b-c).</p>
+      <p>Dos algoritmos: <b>Dijkstra (1959)</b> y <b>Floyd (1962)</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8 DIJKSTRA ===================== -->
+<section id="dijkstra">
+  <h2><span class="num">8</span> SP: algoritmo de Dijkstra (1959)</h2>
+  <p class="lead">Idea: añadir el enlace con la distancia más corta que no genere ciclos <b>al árbol P de caminos más cortos</b> y actualizar la distancia de los vecinos. Es una “ola” que se expande desde el origen.</p>
+
+  <div class="grid two">
+    <div class="box accent-a">
+      <h3>Pasos</h3>
+      <ol>
+        <li>Escoger una raíz s para el árbol P de caminos más cortos.</li>
+        <li>Escoger e = (u,v) con d(s→v) mínimo, u ∈ V(P) y v ∉ V(P).</li>
+        <li>Agregar e al árbol P y actualizar la distancia hasta sus vecinos.</li>
+        <li>Si V(P) ≠ V(G), repetir desde el paso 2.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>Pseudocódigo [Lev12, GT15]</h3>
+<pre class="algo">Require: G = (V, E, c), origen s
+Ensure:  árbol de caminos más cortos P
+1:  d_s = 0
+2:  d_u = ∞  ∀u ∈ V(G) \ {s}
+3:  Q = V(G) y P = (∅, ∅)
+4:  while Q ≠ ∅ do
+5:    v = el de Q con d_v mínimo
+6:    Q = Q \ {v};  P = P + (v, p_v)
+7:    for u ∈ Q : (v,u) ∈ E(G) do
+8:      if d_u &gt; d_v + c((v,u)) then
+9:        d_u = d_v + c((v,u))
+10:       p_u = v</pre>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Traza: ¿de a a g?</h3>
+    <div class="tablewrap"><table class="trace">
+      <tr><th>Paso</th><th>Sale de Q</th><th>Actualiza (d, p)</th></tr>
+      <tr><td>0</td><td>—</td><td>d_a = 0; resto ∞</td></tr>
+      <tr><td>1</td><td>a (0)</td><td>b=7(a), d=5(a)</td></tr>
+      <tr><td>2</td><td>d (5)</td><td>e=20(d), f=11(d)  (b: 5+9=14 &gt; 7, no cambia)</td></tr>
+      <tr><td>3</td><td>b (7)</td><td>c=15(b), e=14(b)  (7+7=14 &lt; 20)</td></tr>
+      <tr><td>4</td><td>f (11)</td><td>g=22(f)  (e: 11+8=19 &gt; 14, no cambia)</td></tr>
+      <tr><td>5</td><td>e (14)</td><td>nada (c: 19 &gt; 15; g: 23 &gt; 22)</td></tr>
+      <tr><td>6–7</td><td>c (15), g (22)</td><td>nada</td></tr>
+    </table></div>
+    <p class="small">Las láminas muestran los pasos 0–3 y la tabla final; los pasos 4–7 siguen el mismo pseudocódigo y coinciden con esa tabla.</p>
+    <p><b>Resultado final:</b> a 0 · b 7(a) · c 15(b) · d 5(a) · e 14(b) · f 11(d) · g 22(f). El camino más corto a → g es <b>a → d → f → g</b>, costo 5 + 6 + 11 = <b>22</b>.</p>
+  </div>
+
+  <div class="grid two">
+    <div class="box accent-b">
+      <h3>Dijkstra vs. Jarník: una sola línea</h3>
+      <p>El código es casi idéntico (la lámina lo compara). Jarník compara contra el costo del enlace; Dijkstra contra la distancia acumulada desde el origen:</p>
+      <pre>Jarník:   if d_u &gt; c((v,u))
+Dijkstra: if d_u &gt; d_v + c((v,u))</pre>
+      <p>Por eso: Jarník minimiza el <i>peso total del árbol</i>; Dijkstra minimiza la <i>distancia desde s</i> a cada vértice.</p>
+    </div>
+    <div class="box accent-b">
+      <h3>Análisis [Lev12]</h3>
+      <p>Memoria ∈ O(|V|). El ciclo de la línea 4 se repite |V| veces.</p>
+      <ul>
+        <li><b>G denso, matriz, Q arreglo:</b> O(|V|²).</li>
+        <li><b>G disperso, lista, Q heap:</b> líneas 4+5 ∈ O(|V| log |V|) y cada actualización de d_u en Q es O(log |V|).</li>
+      </ul>
+      <p class="formula">∴ Dijkstra ∈ O(|E| log |V|) ⊆ O(Δ|V| log |V|)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9 FLOYD ===================== -->
+<section id="floyd">
+  <h2><span class="num">9</span> SP: algoritmo de Floyd (1962)</h2>
+  <p class="lead">Idea: <b>revisar sistemáticamente la distancia triangular de todos los vértices, a todos los vértices, pasando por todos los vértices</b>. Para cada posible “escala” j preguntas: ¿me conviene ir de i a k pasando por j?</p>
+
+  <div class="grid two">
+    <div class="box">
+      <h3>Pseudocódigo (todos los pares)</h3>
+<pre class="algo">Require: grafo G = (V, E, c)
+Ensure:  distancias D, predecesores P
+1: d(i,j) = c((i,j)),  ∀(i,j) ∈ E
+2: d(i,j) = ∞,  ∀(i,j) ∉ E, i ≠ j
+3: d(i,i) = 0,  ∀i ∈ V
+4: p(i,j) = i,  ∀i,j ∈ V
+5: for j = 1 to n do
+6:   for i = 1 to n do  if i ≠ j then
+7:     for k = 1 to n do  if k ≠ j then
+8:       if d(i,k) &gt; d(i,j) + d(j,k) then
+9:         d(i,k) = d(i,j) + d(j,k)
+10:        p(i,k) = p(j,k)</pre>
+    </div>
+    <div class="box accent-a">
+      <h3>Cómo leerlo</h3>
+      <ul>
+        <li><b>D</b> empieza igual que la matriz W; <b>P</b> empieza con p(i,j)=i (fila i llena de i).</li>
+        <li>El ciclo externo <b>j</b> es el vértice “intermedio” que se permite usar. La lámina marca la fila j y la columna j de D en cada paso.</li>
+        <li>p(i,k) es el <b>predecesor de k</b> en el camino más corto desde i; al mejorar por j, el predecesor de k pasa a ser el que tenía en el camino desde j (p(j,k)).</li>
+        <li>Simple de implementar: solo tres ciclos y dos matrices.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box accent-green">
+    <h3>Qué cambia en el grafo de ejemplo (D se actualiza en cada j)</h3>
+    <div class="tablewrap"><table class="trace">
+      <tr><th>j</th><th>Mejoras de distancia</th></tr>
+      <tr><td>1 (a)</td><td>ninguna (D₁ = D₀)</td></tr>
+      <tr><td>2 (b)</td><td>a–c = 15, a–e = 14, c–d = 17 (y sus simétricos); en P: p(a,c)=p(a,e)=b</td></tr>
+      <tr><td>3 (c)</td><td>ninguna (D₃ = D₂)</td></tr>
+      <tr><td>4 (d)</td><td>a–f = 11, b–f = 15, c–f = 23 (y simétricos); en P: pasa a valer d</td></tr>
+      <tr><td>5 (e)</td><td>a–g = 23, b–g = 16, c–f = 13, c–g = 14, d–g = 24 (y simétricos)</td></tr>
+      <tr><td>6 (f)</td><td>a–g = 22, d–e = 14, d–g = 17 (y simétricos)</td></tr>
+    </table></div>
+    <p class="small">Las láminas muestran j = 1, 2, 4, 5 y 6 (D₃ aparece como entrada de j = 4); j = 7 (g) no se muestra. Esta tabla resume las celdas resaltadas en azul en las láminas.</p>
+    <p><b>Matriz D tras j = 6 (última lámina):</b></p>
+    <div class="tablewrap"><table class="tbl">
+      <tr><th>D₆</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>f</th><th>g</th></tr>
+      <tr><td><b>a</b></td><td>0</td><td>7</td><td>15</td><td>5</td><td>14</td><td>11</td><td>22</td></tr>
+      <tr><td><b>b</b></td><td>7</td><td>0</td><td>8</td><td>9</td><td>7</td><td>15</td><td>16</td></tr>
+      <tr><td><b>c</b></td><td>15</td><td>8</td><td>0</td><td>17</td><td>5</td><td>13</td><td>14</td></tr>
+      <tr><td><b>d</b></td><td>5</td><td>9</td><td>17</td><td>0</td><td>14</td><td>6</td><td>17</td></tr>
+      <tr><td><b>e</b></td><td>14</td><td>7</td><td>5</td><td>14</td><td>0</td><td>8</td><td>9</td></tr>
+      <tr><td><b>f</b></td><td>11</td><td>15</td><td>13</td><td>6</td><td>8</td><td>0</td><td>11</td></tr>
+      <tr><td><b>g</b></td><td>22</td><td>16</td><td>14</td><td>17</td><td>9</td><td>11</td><td>0</td></tr>
+    </table></div>
+    <p class="small">Comprobación con Dijkstra: d(a,g) = 22 en ambos métodos.</p>
+  </div>
+
+  <div class="box accent-b">
+    <h3>Dijkstra (1959) vs. Floyd (1962)</h3>
+    <div class="tablewrap"><table class="tbl big">
+      <tr><th></th><th>Dijkstra</th><th>Floyd</th></tr>
+      <tr><td>Resuelve</td><td>de un origen s a todos los vértices</td><td>de todos a todos los vértices</td></tr>
+      <tr><td>Tiempo</td><td>O(|V|·Δ) ≈ O(|V|²); O(|E| log |V|) con heaps</td><td>O(|V|³)</td></tr>
+      <tr><td>Memoria</td><td>O(|V|)</td><td>O(|V|²)</td></tr>
+      <tr><td>Enlaces negativos</td><td class="no">No los admite</td><td class="yes">Los admite (no admite ciclos negativos)</td></tr>
+      <tr><td>Implementación</td><td>—</td><td>Fácil de implementar</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ===================== CHULETA ===================== -->
+<section id="chuleta">
+  <h2><span class="num">★</span> Chuleta de una página</h2>
+  <p class="lead">Todo el tema en una tabla. Ideal para el repaso final.</p>
+  <div class="tablewrap"><table class="tbl cheat">
+    <tr><th>Algoritmo</th><th>Problema</th><th>Idea en una frase</th><th>Tiempo</th><th>Memoria</th><th>Ojo con…</th></tr>
+    <tr><td>Borůvka (1926)</td><td>MST</td><td>Cada árbol añade su enlace más corto hacia afuera</td><td>O(|E| log |V|)</td><td>O(|E|)</td><td>Costos distintos para evitar ciclos</td></tr>
+    <tr><td>Jarník / Prim (1930 / 57)</td><td>MST</td><td>Un solo árbol crece con el vértice más cercano</td><td>O(|V|²) matriz+array · O(|E| log |V|) lista+heap</td><td>O(|V|)</td><td>Dijkstra (1959) lo reinventó</td></tr>
+    <tr><td>Kruskal (1956)</td><td>MST</td><td>Enlaces de menor a mayor; acepta si no forma ciclo</td><td>O(|E| log |V|)</td><td>O(|E|)</td><td>Usa union-find para detectar ciclos</td></tr>
+    <tr><td>Dijkstra (1959)</td><td>SP, un origen</td><td>Como Jarník pero con d_u &gt; d_v + c</td><td>O(|V|²) · O(|E| log |V|) con heap</td><td>O(|V|)</td><td>No admite enlaces negativos</td></tr>
+    <tr><td>Floyd (1962)</td><td>SP, todos los pares</td><td>¿Conviene pasar por j? para todo j, i, k</td><td>O(|V|³)</td><td>O(|V|²)</td><td>Admite negativos, no ciclos negativos</td></tr>
+  </table></div>
+  <div class="grid three">
+    <div class="box"><b>Matriz de adyacencia</b><br>O(|V|²) · acceso O(1)</div>
+    <div class="box"><b>Lista de adyacencia</b><br>O(|V|+|E|) · acceso O(Δ)</div>
+    <div class="box"><b>Lista como matriz</b><br>O(Δ|V|) · acceso O(Δ), sin cache misses</div>
+  </div>
+  <p class="formula">Árbol con n vértices ⇒ n − 1 enlaces · MST del ejemplo = 39 · SP a→g = 22 (a-d-f-g)</p>
+</section>
+
+<!-- ===================== TRUCOS ===================== -->
+<section id="mnemo">
+  <h2><span class="num">💡</span> Trucos mentales y analogías</h2>
+  <p class="lead">Ayudas para recordar (son mías, no vienen en las láminas).</p>
+  <div class="grid three mnemo">
+    <div class="box"><span class="em">🏘️</span><b>Borůvka = “todos a la vez”.</b> Cada pueblo estira su carretera más barata hacia un vecino. Ronda tras ronda, los pueblos se fusionan.</div>
+    <div class="box"><span class="em">🛢️</span><b>Jarník/Prim = mancha de aceite.</b> Parte de un punto y absorbe siempre lo más cercano a la mancha. Un solo árbol.</div>
+    <div class="box"><span class="em">🏝️</span><b>Kruskal = unir islas baratas primero.</b> Ordena los puentes por precio; construye cada uno salvo que ya haya camino (misma etiqueta).</div>
+    <div class="box"><span class="em">🌊</span><b>Dijkstra = ola que se expande.</b> Los vértices “se cierran” en orden de distancia al origen. Es Jarník con distancia acumulada.</div>
+    <div class="box"><span class="em">🔁</span><b>Floyd = escalas.</b> Para cada aeropuerto j pregunto: ¿mejora algún vuelo i→k si hago escala en j?</div>
+    <div class="box"><span class="em">🧠</span><b>Regla rápida.</b> ¿Conectar todo barato? → MST. ¿Ruta de A a B? → Dijkstra. ¿Todas las rutas? → Floyd. ¿Negativos? → Floyd.</div>
+  </div>
+</section>
+
+<!-- ===================== DEMO ===================== -->
+<section id="demo">
+  <h2><span class="num">▶</span> Demo paso a paso en el grafo de ejemplo</h2>
+  <p class="lead">Elige un algoritmo y avanza. Los números junto a cada vértice son sus etiquetas (d y p, o r), como en las tablas de las láminas. En azul: enlaces del árbol; violeta: enlace del paso; rojo discontinuo: descartado.</p>
+  <div class="demo">
+    <svg id="demo-svg" viewBox="0 0 370 345" role="img" aria-label="Grafo de ejemplo con 7 vértices"></svg>
+    <div>
+      <div class="demo-ctl">
+        <select id="algoSel" aria-label="Algoritmo">
+          <option value="jarnik">Jarník / Prim (desde d)</option>
+          <option value="kruskal">Kruskal</option>
+          <option value="dijkstra">Dijkstra (desde a)</option>
+        </select>
+        <button class="btn ghost" id="prevStep">◀ Anterior</button>
+        <button class="btn" id="nextStep">Siguiente ▶</button>
+        <button class="btn ghost" id="resetStep">Reiniciar</button>
+      </div>
+      <p id="demoMsg" aria-live="polite"></p>
+      <p class="small">Reto: antes de pulsar “Siguiente”, predice qué vértice o enlace viene. Tras terminar Jarník y Kruskal, suma los costos: debe dar 39.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TARJETAS ===================== -->
+<section id="tarjetas">
+  <h2><span class="num">?</span> Tarjetas de preguntas</h2>
+  <p class="lead">Haz clic para voltear. Al ver la respuesta marca <b>“Lo sé”</b> o <b>“Repasar”</b>: tu progreso se guarda en este navegador y puedes mostrar solo las pendientes (repaso espaciado sencillo).</p>
+  <div class="controls">
+    <div class="filters" id="topicFilters" aria-label="Filtrar por tema"></div>
+    <div class="actions">
+      <select id="statusSel" aria-label="Estado">
+        <option value="all">Todas</option>
+        <option value="pending">Solo pendientes</option>
+        <option value="known">Solo dominadas</option>
+      </select>
+      <button id="shuffle">🔀 Mezclar</button>
+      <button id="flipall">↻ Voltear todas</button>
+      <button id="reset">Borrar progreso</button>
+    </div>
+  </div>
+  <div class="progress" aria-hidden="true"><div id="progBar"></div></div>
+  <p class="counter"><span id="progText"></span> · <span id="counter"></span></p>
+  <div class="cards deck-off" id="cards"></div>
+</section>
+
+<!-- ===================== QUIZ ===================== -->
+<section id="quiz">
+  <h2><span class="num">✔</span> Mini quiz de autoevaluación</h2>
+  <p class="lead">12 preguntas de opción múltiple, en orden aleatorio, con explicación inmediata.</p>
+  <div id="quiz-box" aria-live="polite"></div>
+</section>
+
+</main>
+
+<footer>
+  Resumen basado en las láminas “Algoritmos en grafos” (UNSA, Análisis y Diseño de Algoritmos, CONT2 Tema 4, septiembre 2024).
+  Las aclaraciones marcadas como mías (trazas completas, trucos, definiciones estándar) no vienen literalmente en las láminas.
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
