@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimación e Intervalos de Confianza</title>
+<script>
+  window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --azul-900:#12304f; --azul-700:#1f4e79; --azul-500:#2e75b6; --azul-100:#e3eef9; --azul-50:#f2f7fc;
+    --gris-900:#2b3440; --gris-600:#5b6675; --gris-300:#d5dbe3; --gris-100:#f3f5f8; --blanco:#fff;
+    --verde:#2e8b57; --ambar:#d98e04;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; scroll-padding-top:76px; }
+  body { font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif; background:var(--gris-100); color:var(--gris-900); line-height:1.6; padding:0 16px 48px; }
+  .contenedor { max-width:1050px; margin:0 auto; }
+
+  nav.barra { position:sticky; top:0; z-index:10; background:var(--blanco); border-bottom:1px solid var(--gris-300); margin:0 -16px 24px; padding:10px 16px; }
+  nav.barra .interior { max-width:1050px; margin:0 auto; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  nav.barra a { text-decoration:none; font-size:.85rem; font-weight:600; color:var(--azul-700); background:var(--azul-50); padding:5px 12px; border-radius:20px; border:1px solid var(--azul-100); }
+  nav.barra a:hover, nav.barra a:focus-visible { background:var(--azul-100); outline:2px solid var(--azul-500); }
+  nav.barra a.ext { background:var(--azul-700); color:var(--blanco); border-color:var(--azul-700); }
+  nav.barra a.ext:hover { background:var(--azul-900); }
+  nav.barra .sep { flex:1; }
+
+  header.titulo { background:linear-gradient(135deg,var(--azul-900),var(--azul-500)); color:var(--blanco); padding:30px 28px; border-radius:16px; margin-bottom:26px; }
+  header.titulo h1 { font-size:1.9rem; line-height:1.25; }
+  header.titulo p { margin-top:8px; opacity:.92; max-width:70ch; }
+
+  section { margin-bottom:32px; }
+  .seccion-titulo { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .seccion-titulo .num { background:var(--azul-700); color:var(--blanco); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; }
+  .seccion-titulo h2 { font-size:1.35rem; color:var(--azul-900); }
+
+  .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr)); }
+  .card { background:var(--blanco); border:1px solid var(--gris-300); border-left:5px solid var(--azul-500); border-radius:12px; padding:20px 22px; }
+  .card h3 { color:var(--azul-700); font-size:1.08rem; margin-bottom:6px; }
+  .card p, .card li { font-size:.95rem; }
+  .card ul { margin:6px 0 0 18px; }
+  .etiqueta { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--gris-600); margin-top:10px; }
+  .formula { background:var(--azul-50); border-radius:8px; padding:8px 12px; margin:4px 0; overflow-x:auto; text-align:center; }
+  .sumilla { margin-top:10px; padding:9px 12px; background:var(--gris-100); border-radius:8px; font-size:.92rem; }
+  .sumilla strong { color:var(--azul-700); }
+  .alerta { margin-top:10px; font-size:.86rem; background:#fff6e0; border:1px solid #ecd08a; border-radius:8px; padding:8px 12px; }
+  .salto { margin-bottom:26px; padding:12px 16px; background:var(--blanco); border:1px dashed var(--gris-300); border-radius:10px; font-size:.92rem; color:var(--gris-600); }
+
+  .tabla { overflow-x:auto; background:var(--blanco); border:1px solid var(--gris-300); border-radius:12px; margin-top:10px; }
+  table { width:100%; border-collapse:collapse; font-size:.93rem; }
+  th, td { padding:10px 14px; text-align:left; }
+  thead th { background:var(--azul-700); color:var(--blanco); white-space:nowrap; }
+  tbody tr:nth-child(even) { background:var(--azul-50); }
+  tbody tr { border-bottom:1px solid var(--gris-300); }
+  td.n, th.n { text-align:center; }
+
+  .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.8rem; font-weight:700; color:#fff; background:var(--azul-500); }
+  .badge.verde { background:var(--verde); } .badge.ambar { background:var(--ambar); }
+
+  details { margin-top:12px; background:var(--blanco); border:1px solid var(--gris-300); border-radius:10px; padding:10px 14px; }
+  summary { cursor:pointer; font-weight:600; color:var(--azul-700); }
+  details .cont { margin-top:10px; font-size:.93rem; }
+  details .cont p { margin-bottom:6px; }
+  .resp { display:inline-block; margin-top:6px; background:var(--azul-100); color:var(--azul-900); font-weight:700; padding:3px 12px; border-radius:20px; }
+
+  .pie { margin-top:30px; padding:18px; text-align:center; background:var(--blanco); border:1px dashed var(--gris-300); border-radius:12px; }
+  .pie a { display:inline-block; margin:6px 4px 0; text-decoration:none; font-weight:600; background:var(--azul-700); color:#fff; padding:9px 20px; border-radius:8px; }
+  .pie a:hover { background:var(--azul-900); }
+  @media (max-width:520px) { header.titulo h1 { font-size:1.5rem; } }
+  @media print { details { display:block; } nav.barra { position:static; } }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <nav class="barra">
+    <div class="interior">
+      <a href="#conceptos">Conceptos</a>
+      <a href="#propiedades">Propiedades</a>
+      <a href="#ic-media">Media</a>
+      <a href="#ic-t">Media (t)</a>
+      <a href="#ic-prop">Proporción</a>
+      <a href="#ic-dif-prop">Dif. proporciones</a>
+      <a href="#ic-var">Varianza</a>
+      <a href="#ic-razon">Razón de varianzas</a>
+      <a href="#tamano">Tamaño de muestra</a>
+      <a href="#resumen">Resumen</a>
+      <span class="sep"></span>
+      <a class="ext" href="muestreo_distribuciones_muestrales.html">Muestreo</a>
+      <a class="ext" href="modelos_distribucion_discreta.html">Modelos discretos</a>
+    </div>
+  </nav>
+
+  <header class="titulo">
+    <h1>Estimación e Intervalos de Confianza</h1>
+    <p>Cómo usar los datos de una muestra para estimar parámetros desconocidos de la población: estimación puntual, propiedades de un buen estimador e intervalos de confianza.</p>
+  </header>
+
+  <!-- 1. CONCEPTOS -->
+  <section id="conceptos">
+    <div class="seccion-titulo"><div class="num">1</div><h2>Conceptos básicos</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Inferencia estadística</h3>
+        <p>Muchas veces la información sobre la variable en estudio es parcial o desconocida: por ejemplo, se admite que las notas siguen una normal pero se desconocen $\mu$ y $\sigma^2$. Entonces se infiere información de la población a partir de muestras.</p>
+        <div class="sumilla"><strong>Estimación estadística:</strong> usar datos muestrales para determinar los valores de parámetros desconocidos de una población.</div>
+      </article>
+      <article class="card">
+        <h3>Estimador y estimación</h3>
+        <ul>
+          <li><strong>Estimador:</strong> estadístico (regla o fórmula) que se usa para aproximar un parámetro. Ejemplo: $\bar{x}$ para $\mu$.</li>
+          <li><strong>Estimación:</strong> el número que se obtiene al evaluar el estimador en una muestra particular. Ejemplo: $\bar{x}=11.04$.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Estimación puntual</h3>
+        <p>Es un único valor numérico $\hat{\theta}$ del estadístico, usado para estimar el parámetro $\theta$.</p>
+        <div class="sumilla"><strong>Ejemplo 1:</strong> medir una distancia y obtener $y=23.5$ es una estimación puntual.</div>
+      </article>
+      <article class="card">
+        <h3>Estimación por intervalos</h3>
+        <p>Es un intervalo aleatorio cuyos extremos $a$ y $b$ son estadísticos y en el que se espera que esté el parámetro, con probabilidad alta $1-\alpha$ (<strong>nivel de confianza</strong>).</p>
+        <div class="formula">$$P(a\le\mu\le b)\approx 1-\alpha$$</div>
+        <div class="sumilla"><strong>Ejemplo 1:</strong> $y=23.5\pm0.04$ es una estimación por intervalo: la distancia está entre 23.46 y 23.54. Mayor $1-\alpha$ significa más probabilidad de acierto, y $\alpha$ debe ser pequeño.</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 2 (resuelto): estimación puntual de $\mu$</summary>
+      <div class="cont">
+        <p>Muestra de $n=10$: 12.8, 9.4, 8.7, 11.6, 13.1, 9.8, 14.1, 8.5, 12.1, 10.3.</p>
+        <div class="formula">$$\bar{x}=\frac{110.4}{10}=11.04$$</div>
+        <span class="resp">Estimación puntual de $\mu$: 11.04</span>
+      </div>
+    </details>
+  </section>
+
+  <!-- 2. PROPIEDADES -->
+  <section id="propiedades">
+    <div class="seccion-titulo"><div class="num">2</div><h2>Propiedades deseables de un estimador</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Insesgado</h3>
+        <p>Un estimador es insesgado si la media de su distribución muestral es igual al parámetro; si no, es sesgado.</p>
+        <div class="formula">$$E(\hat{\theta})=\theta$$</div>
+        <div class="sumilla">Ejemplo: $E(\bar{x})=\mu$, así que $\bar{x}$ es un estimador insesgado de $\mu$.</div>
+      </article>
+      <article class="card">
+        <h3>Eficiente</h3>
+        <p>Si dos estimadores tienen la misma media (valor esperado), el de menor varianza es el eficiente y el otro es ineficiente (Spiegel).</p>
+        <div class="formula">$$Var(\hat{\theta}_1)<Var(\hat{\theta}_2)\ \Rightarrow\ \hat{\theta}_1\text{ es más eficiente}$$</div>
+      </article>
+      <article class="card">
+        <h3>Consistente</h3>
+        <p>A medida que crece el tamaño de la muestra, el estimador se aproxima cada vez más al valor real del parámetro. Con más datos, la estimación es más precisa.</p>
+        <div class="formula">$$\hat{\theta}_n\longrightarrow\theta\quad\text{cuando } n\to\infty$$</div>
+      </article>
+    </div>
+    <div class="salto" style="margin-top:18px;">Los métodos de estimación puntual (máxima verosimilitud, momentos y mínimos cuadrados) no están incluidos en esta ficha. Sigue con la estimación por intervalos.</div>
+  </section>
+
+  <!-- 3. IC MEDIA -->
+  <section id="ic-media">
+    <div class="seccion-titulo"><div class="num">3</div><h2>Intervalo de confianza para la media $\mu$ ($\sigma$ conocida)</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Fórmula (dos colas)</h3>
+        <p>Se parte de $z=\dfrac{\bar{x}-\mu}{\sigma/\sqrt{n}}$ y se despeja $\mu$:</p>
+        <div class="formula">$$\bar{x}-z_{\alpha/2}\frac{\sigma}{\sqrt{n}}\ \le\ \mu\ \le\ \bar{x}+z_{\alpha/2}\frac{\sigma}{\sqrt{n}}$$</div>
+        <div class="sumilla">También existen intervalos de una cola (a la izquierda o a la derecha).</div>
+      </article>
+      <article class="card">
+        <h3>Valores críticos $z_{\alpha/2}$ más usados</h3>
+        <div class="tabla">
+          <table>
+            <thead><tr><th class="n">Confianza $1-\alpha$</th><th class="n">$z_{\alpha/2}$</th></tr></thead>
+            <tbody>
+              <tr><td class="n">90%</td><td class="n">1.645</td></tr>
+              <tr><td class="n">95%</td><td class="n">1.96</td></tr>
+              <tr><td class="n">99%</td><td class="n">2.576</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 5 (resuelto): ingesta diaria de lácteos</summary>
+      <div class="cont">
+        <p>$n=50$, $\bar{x}=756$ g/día, desviación estándar 35 g/día, confianza 95% ($z=1.96$).</p>
+        <div class="formula">$$756\pm1.96\frac{35}{\sqrt{50}}=756\pm9.70$$</div>
+        <span class="resp">IC 95%: [746.30, 765.70]</span>
+      </div>
+    </details>
+  </section>
+
+  <!-- 4. IC t -->
+  <section id="ic-t">
+    <div class="seccion-titulo"><div class="num">4</div><h2>Intervalo para la media con varianza desconocida (muestra pequeña)</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Fórmula con $t$ de Student</h3>
+        <p>Para $X$ aproximadamente normal con $\sigma^2$ desconocida se usa $T=\dfrac{\bar{x}-\mu}{S/\sqrt{n}}$, con $n-1$ grados de libertad.</p>
+        <div class="formula">$$\bar{x}-t_{\alpha/2}(n-1)\frac{S}{\sqrt{n}}\ \le\ \mu\ \le\ \bar{x}+t_{\alpha/2}(n-1)\frac{S}{\sqrt{n}}$$</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 4 (resuelto): volumen de ventas del restaurante</summary>
+      <div class="cont">
+        <p>Normalmente se vendían 20 000 soles diarios. En $n=25$ días: $\bar{x}=19\,000$ y $s=2\,000$. Confianza 95%, $t_{0.025}(24)=2.064$.</p>
+        <div class="formula">$$19000\pm2.064\left(\frac{2000}{\sqrt{25}}\right)=19000\pm825.6$$</div>
+        <span class="resp">IC 95%: (18 174.4 ; 19 825.6)</span>
+        <p style="margin-top:8px;">Como 20 000 no está dentro del intervalo, hay razón para creer que el volumen promedio diario disminuyó.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Ejercicio 1 (resuelto): estimaciones puntual e interválica de $\mu$</summary>
+      <div class="cont">
+        <p>Datos: 12.8, 9.4, 8.7, 11.6, 13.1, 9.8, 14.1, 8.5, 12.1, 10.3 ($n=10$, población normal, $\sigma$ desconocida).</p>
+        <p><strong>Puntual:</strong> $\bar{x}=11.04$. Además $s^2=\frac{34.844}{9}\approx3.872$ y $s\approx1.968$.</p>
+        <p><strong>Intervalo 95%:</strong> $t_{0.025}(9)=2.262$.</p>
+        <div class="formula">$$11.04\pm2.262\frac{1.968}{\sqrt{10}}=11.04\pm1.41$$</div>
+        <span class="resp">IC 95%: (9.63 ; 12.45)</span>
+        <div class="alerta"><strong>Ojo:</strong> el apunte escribe 12.08 en el primer dato del ejercicio, pero en el Ejemplo 2 es 12.8. Usé 12.8.</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- 5. IC PROPORCION -->
+  <section id="ic-prop">
+    <div class="seccion-titulo"><div class="num">5</div><h2>Intervalo de confianza para una proporción</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Fórmula</h3>
+        <p>Población binomial; el parámetro es la proporción poblacional $P$. A partir de $z=\dfrac{\hat{p}-P}{\sqrt{PQ/n}}$:</p>
+        <div class="formula">$$P=\hat{p}\pm z_{\alpha/2}\sqrt{\frac{\hat{p}\hat{q}}{n}}$$</div>
+        <div class="sumilla">En la práctica $P$ y $Q$ se reemplazan por $\hat{p}$ y $\hat{q}=1-\hat{p}$. Es un intervalo de $100(1-\alpha)\%$ de dos colas.</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 6 (resuelto): alumnos suspendidos por dificultades económicas</summary>
+      <div class="cont">
+        <p>$n=200$ de una población de 1500; 140 respondieron que fue por razones económicas. Confianza 95%.</p>
+        <div class="formula">$$\hat{p}=\frac{140}{200}=0.70,\qquad 0.70\pm1.96\sqrt{\frac{0.70(0.30)}{200}}=0.70\pm0.064$$</div>
+        <span class="resp">IC 95%: [0.64 ; 0.76]</span>
+        <p style="margin-top:8px;">Como $n/N=0.13>0.05$, aplicar el factor de corrección de población finita casi no cambia el resultado (queda [0.641 ; 0.759]).</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 6. IC DIF PROPORCIONES -->
+  <section id="ic-dif-prop">
+    <div class="seccion-titulo"><div class="num">6</div><h2>Intervalo para la diferencia de dos proporciones</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Fórmula</h3>
+        <div class="formula">$$(\hat{p}_1-\hat{p}_2)\pm z_{\alpha/2}\sqrt{\frac{\hat{p}_1\hat{q}_1}{n_1}+\frac{\hat{p}_2\hat{q}_2}{n_2}}$$</div>
+        <div class="sumilla">Si el intervalo no contiene al 0, hay evidencia de que las proporciones poblacionales son distintas.</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejercicio 2 (resuelto): funcionarios que ven un programa de TV</summary>
+      <div class="cont">
+        <p>Muestra 1: $n_1=300$, $\hat{p}_1=0.75$. Muestra 2: $n_2=200$, $\hat{p}_2=0.66$. Confianza 95%.</p>
+        <div class="formula">$$0.09\pm1.96\sqrt{\frac{0.75(0.25)}{300}+\frac{0.66(0.34)}{200}}=0.09\pm1.96(0.0418)=0.09\pm0.082$$</div>
+        <span class="resp">IC 95%: (0.008 ; 0.172)</span>
+        <p style="margin-top:8px;">El intervalo no incluye al 0, así que hay evidencia de que la proporción de quienes ven el programa es mayor en la primera población.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 7. IC VARIANZA -->
+  <section id="ic-var">
+    <div class="seccion-titulo"><div class="num">7</div><h2>Intervalo de confianza para la varianza</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Fórmula (distribución Chi-cuadrado)</h3>
+        <p>Con $S^2=\dfrac{\sum(x_i-\bar{x})^2}{n-1}$ de una población normal, $\dfrac{(n-1)S^2}{\sigma^2}$ sigue una $\chi^2$ con $n-1$ g.l.</p>
+        <div class="formula">$$\frac{(n-1)S^2}{\chi^2_{\alpha/2,\,n-1}}\ \le\ \sigma^2\ \le\ \frac{(n-1)S^2}{\chi^2_{1-\alpha/2,\,n-1}}$$</div>
+        <div class="sumilla">$\chi^2_{\alpha/2}$ es el valor crítico de la cola derecha (el mayor) y $\chi^2_{1-\alpha/2}$ el de la cola izquierda (el menor). Para la desviación estándar se saca raíz cuadrada a ambos extremos.</div>
+        <div class="alerta"><strong>Ojo:</strong> en la fórmula del apunte los subíndices $\alpha/2$ y $1-\alpha/2$ aparecen intercambiados, pero el Ejemplo 8 sí usa el orden correcto, que es el que se muestra aquí.</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 8 (resuelto): cajas de cereal de 16 g</summary>
+      <div class="cont">
+        <p>Muestra de $n=10$ cajas con $\bar{x}=15.9$ y $\sum(x_i-\bar{x})^2=0.48$, es decir $9S^2=0.48$ y $S^2\approx0.0533$. Confianza 95%: $\alpha=0.05$ (el apunte escribe 0.5 por error), 9 g.l., $\chi^2_{0.025}=19.02$ y $\chi^2_{0.975}=2.70$.</p>
+        <div class="formula">$$\frac{0.48}{19.02}\le\sigma^2\le\frac{0.48}{2.70}$$</div>
+        <span class="resp">IC 95% para $\sigma^2$: (0.0252 ; 0.1777)</span>
+        <p style="margin-top:8px;">Para $\sigma$: $(\sqrt{0.0252};\sqrt{0.1777})\approx(0.159;\ 0.422)$.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 8. IC RAZON -->
+  <section id="ic-razon">
+    <div class="seccion-titulo"><div class="num">8</div><h2>Intervalo para la razón de dos varianzas</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Concepto</h3>
+        <p>$\dfrac{S_1^2}{S_2^2}$ es el estimador puntual de $\dfrac{\sigma_1^2}{\sigma_2^2}$. Si las varianzas poblacionales son iguales, la razón es 1. Para dos poblaciones normales,</p>
+        <div class="formula">$$\frac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2}\sim F_{(n_1-1,\ n_2-1)}$$</div>
+      </article>
+      <article class="card">
+        <h3>Fórmula</h3>
+        <div class="formula">$$\frac{S_1^2}{S_2^2}\cdot\frac{1}{F_{\alpha/2}(n_1-1,\,n_2-1)}\ \le\ \frac{\sigma_1^2}{\sigma_2^2}\ \le\ \frac{S_1^2}{S_2^2}\cdot F_{\alpha/2}(n_2-1,\,n_1-1)$$</div>
+        <div class="sumilla">$F_{\alpha/2}(a,b)$ es el valor crítico de la cola derecha con $a$ g.l. en el numerador y $b$ en el denominador. Si el intervalo contiene al 1, no hay evidencia de que las varianzas sean distintas.</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 9 (resuelto): dos métodos de enseñanza</summary>
+      <div class="cont">
+        <p>$n_1=16$, $S_1^2=280$; $n_2=10$, $S_2^2=200$. Confianza 90% ($\alpha/2=0.05$). Razón muestral: $280/200=1.4$.</p>
+        <p>$F_{0.05}(15,9)=3.01$ y $F_{0.05}(9,15)=2.59$.</p>
+        <div class="formula">$$a=\frac{1.4}{3.01}=0.465,\qquad b=1.4\,(2.59)=3.63$$</div>
+        <span class="resp">IC 90%: (0.465 ; 3.63)</span>
+        <p style="margin-top:8px;">Contiene al 1: no hay evidencia de que las varianzas difieran.</p>
+        <div class="alerta"><strong>Ojo:</strong> el apunte llega a (0.5405 ; 1.6757), pero $1.4\times3.01=4.21$, no 1.6757, y el factor 0.3861 corresponde a $1/2.59$, no a $1/3.01$. Aquí apliqué la fórmula con los valores de tabla indicados.</div>
+      </div>
+    </details>
+    <details>
+      <summary>Ejercicio 2 (resuelto): estaturas de niñas y niños de 12 años</summary>
+      <div class="cont">
+        <p>$n_1=25$, $S_1^2=64$; $n_2=21$, $S_2^2=36$. Confianza 95%. Razón: $64/36=1.778$. $F_{0.025}(24,20)=2.41$ y $F_{0.025}(20,24)=2.33$.</p>
+        <div class="formula">$$\frac{1.778}{2.41}\le\frac{\sigma_1^2}{\sigma_2^2}\le1.778\,(2.33)$$</div>
+        <span class="resp">IC 95%: (0.74 ; 4.14)</span>
+        <p style="margin-top:8px;">Contiene al 1: no hay evidencia de diferencia entre las varianzas.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 9. TAMAÑO DE MUESTRA -->
+  <section id="tamano">
+    <div class="seccion-titulo"><div class="num">9</div><h2>Selección del tamaño de la muestra</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Idea</h3>
+        <p>La información de una muestra depende del plan muestral y del tamaño $n$. La precisión se mide con el margen de error $e$ (la mitad de la amplitud del IC): fijar la precisión determina el $n$ necesario.</p>
+        <div class="formula">$$e=z_{\alpha/2}\frac{\sigma}{\sqrt{n}}$$</div>
+      </article>
+      <article class="card">
+        <h3>Fórmula para estimar $\mu$</h3>
+        <div class="formula">$$n=\frac{z_{\alpha/2}^{2}\,\sigma^2}{e^2}$$</div>
+        <div class="sumilla">Siempre se redondea hacia arriba al entero siguiente.</div>
+      </article>
+    </div>
+    <details>
+      <summary>Ejemplo 10 (resuelto): salarios</summary>
+      <div class="cont">
+        <p>Error máximo $e=18$ soles, confianza 95%, $\sigma=100$.</p>
+        <div class="formula">$$n=\frac{(1.96)^2(100)^2}{18^2}=\frac{38416}{324}=118.57$$</div>
+        <span class="resp">n = 119 salarios</span>
+      </div>
+    </details>
+    <details>
+      <summary>Ejercicio 3 (resuelto): población normal con $\sigma=3$</summary>
+      <div class="cont">
+        <p>Confianza 90% ($z=1.645$), $e=0.5$.</p>
+        <div class="formula">$$n=\frac{(1.645)^2(3)^2}{(0.5)^2}\approx97.4$$</div>
+        <span class="resp">n = 98</span>
+      </div>
+    </details>
+  </section>
+
+  <!-- RESUMEN -->
+  <section id="resumen">
+    <div class="seccion-titulo"><div class="num">10</div><h2>Resumen: ¿qué intervalo uso?</h2></div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Parámetro</th><th>Condición</th><th>Intervalo</th><th>Distribución</th></tr></thead>
+        <tbody>
+          <tr><td>$\mu$</td><td>$\sigma$ conocida</td><td>$\bar{x}\pm z_{\alpha/2}\dfrac{\sigma}{\sqrt{n}}$</td><td><span class="badge">Normal</span></td></tr>
+          <tr><td>$\mu$</td><td>$\sigma$ desconocida, muestra pequeña</td><td>$\bar{x}\pm t_{\alpha/2}\dfrac{S}{\sqrt{n}}$</td><td><span class="badge ambar">$t$</span> ($n-1$ g.l.)</td></tr>
+          <tr><td>$P$</td><td>muestra grande</td><td>$\hat{p}\pm z_{\alpha/2}\sqrt{\dfrac{\hat{p}\hat{q}}{n}}$</td><td><span class="badge">Normal</span></td></tr>
+          <tr><td>$P_1-P_2$</td><td>$n_1,n_2$ grandes</td><td>$(\hat{p}_1-\hat{p}_2)\pm z_{\alpha/2}\sqrt{\dfrac{\hat{p}_1\hat{q}_1}{n_1}+\dfrac{\hat{p}_2\hat{q}_2}{n_2}}$</td><td><span class="badge">Normal</span></td></tr>
+          <tr><td>$\sigma^2$</td><td>población normal</td><td>$\left[\dfrac{(n-1)S^2}{\chi^2_{\alpha/2}},\ \dfrac{(n-1)S^2}{\chi^2_{1-\alpha/2}}\right]$</td><td><span class="badge verde">$\chi^2$</span> ($n-1$ g.l.)</td></tr>
+          <tr><td>$\sigma_1^2/\sigma_2^2$</td><td>dos poblaciones normales</td><td>$\left[\dfrac{S_1^2/S_2^2}{F_{\alpha/2}(n_1-1,n_2-1)},\ \dfrac{S_1^2}{S_2^2}F_{\alpha/2}(n_2-1,n_1-1)\right]$</td><td><span class="badge verde">$F$</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="pie">
+    <p>Continúa repasando:</p>
+    <a href="muestreo_distribuciones_muestrales.html">Muestreo y distribuciones muestrales</a>
+    <a href="modelos_distribucion_discreta.html">Modelos de distribución discreta</a>
+    <a href="sumillado_variable_aleatoria_discreta.html">Medidas descriptivas</a>
+  </div>
+
+</div>
+</body>
+</html>

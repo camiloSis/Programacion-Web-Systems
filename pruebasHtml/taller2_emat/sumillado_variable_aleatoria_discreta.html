@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sumillado: Variable Aleatoria Discreta y sus Medidas Descriptivas</title>
+
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --azul-900: #12304f;
+    --azul-700: #1f4e79;
+    --azul-500: #2e75b6;
+    --azul-100: #e3eef9;
+    --azul-50: #f2f7fc;
+    --gris-900: #2b3440;
+    --gris-600: #5b6675;
+    --gris-300: #d5dbe3;
+    --gris-100: #f3f5f8;
+    --verde: #2e8b57;
+    --rojo: #c0504d;
+    --ambar: #d98e04;
+    --blanco: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--gris-100);
+    color: var(--gris-900);
+    line-height: 1.6;
+    padding: 24px 16px 48px;
+  }
+    nav.barra {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--blanco);
+    border-bottom: 1px solid var(--gris-300);
+    margin: 0 -16px 24px;
+    padding: 10px 16px;
+  }
+  nav.barra .interior {
+    max-width: 1050px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  nav.barra a {
+    text-decoration: none; font-size: 0.85rem; font-weight: 600;
+    color: var(--azul-700); background: var(--azul-50);
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--azul-100);
+  }
+  nav.barra a:hover, nav.barra a:focus-visible { background: var(--azul-100); outline: 2px solid var(--azul-500); }
+  nav.barra a.volver { background: var(--azul-700); color: var(--blanco); border-color: var(--azul-700); margin-right: auto; }
+  nav.barra a.volver:hover { background: var(--azul-900); }
+
+  .contenedor { max-width: 1050px; margin: 0 auto; }
+
+  header.titulo {
+    background: linear-gradient(135deg, var(--azul-900), var(--azul-500));
+    color: var(--blanco);
+    padding: 32px 28px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(18, 48, 79, 0.25);
+    margin-bottom: 28px;
+  }
+  header.titulo .etiqueta {
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.18);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  header.titulo h1 { font-size: 1.9rem; line-height: 1.25; }
+  header.titulo p { margin-top: 8px; opacity: 0.9; font-size: 0.98rem; }
+
+  section { margin-bottom: 32px; }
+
+  .seccion-titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .seccion-titulo .num {
+    background: var(--azul-700);
+    color: var(--blanco);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .seccion-titulo h2 { font-size: 1.35rem; color: var(--azul-900); }
+
+  .grid { display: grid; gap: 18px; }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+
+  .card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 20px 22px;
+    border: 1px solid var(--gris-300);
+    border-top: 5px solid var(--azul-500);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(31,78,121,0.15); }
+  .card h3 { color: var(--azul-700); font-size: 1.1rem; margin-bottom: 10px; }
+
+  .formula-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--gris-600);
+    margin-top: 10px;
+  }
+  .formula {
+    background: var(--azul-50);
+    border-left: 4px solid var(--azul-500);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 6px 0 4px;
+    overflow-x: auto;
+    text-align: center;
+  }
+
+  .sumilla {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--gris-100);
+    border-radius: 8px;
+    font-size: 0.93rem;
+    color: var(--gris-900);
+  }
+  .sumilla strong { color: var(--azul-700); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+  th, td { padding: 11px 14px; text-align: left; }
+  thead th { background: var(--azul-700); color: var(--blanco); font-weight: 600; }
+  tbody tr:nth-child(even) { background: var(--azul-50); }
+  tbody tr { border-bottom: 1px solid var(--gris-300); }
+  td.centro, th.centro { text-align: center; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--blanco);
+  }
+  .badge.verde { background: var(--verde); }
+  .badge.azul { background: var(--azul-500); }
+  .badge.rojo { background: var(--rojo); }
+  .badge.ambar { background: var(--ambar); }
+
+  .resultados {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .resultado {
+    background: var(--azul-50);
+    border: 1px solid var(--azul-100);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .resultado .valor { font-size: 1.5rem; font-weight: 700; color: var(--azul-700); margin: 4px 0; }
+  .resultado .nombre { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gris-600); }
+  .resultado .interp { font-size: 0.85rem; color: var(--gris-900); }
+
+  .nota {
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--gris-600);
+    background: var(--blanco);
+    border: 1px dashed var(--gris-300);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  details.interactivo {
+    margin-top: 14px;
+    background: var(--blanco);
+    border: 1px solid var(--gris-300);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  details.interactivo summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--azul-700);
+  }
+  details.interactivo .contenido { margin-top: 10px; font-size: 0.93rem; }
+
+  footer {
+    text-align: center;
+    color: var(--gris-600);
+    font-size: 0.85rem;
+    margin-top: 30px;
+  }
+
+  @media (max-width: 600px) {
+    header.titulo h1 { font-size: 1.45rem; }
+    th, td { padding: 8px 8px; font-size: 0.88rem; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card:hover { transform: none; box-shadow: none; }
+    details.interactivo { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+<nav class="barra">
+    <div class="interior">
+      <a class="volver" href="modelos_distribucion_discreta.html">-> modelos de distribucion discreta</a>
+    </div>
+</nav>
+
+  <!-- 1. TÍTULO PRINCIPAL -->
+  <header class="titulo">
+    <span class="etiqueta">Ficha de repaso · Estadística</span>
+    <h1>Sumillado: Variable Aleatoria Discreta y sus Medidas Descriptivas</h1>
+    <p>Esperanza, Varianza, Desviación Estándar, Asimetría y Curtosis.</p>
+  </header>
+
+  <!-- 2. SECCIÓN 1 -->
+  <section>
+    <div class="seccion-titulo">
+      <div class="num">1</div>
+      <h2>Esperanza Matemática y Varianza</h2>
+    </div>
+
+    <div class="grid grid-3">
+      <!-- Esperanza -->
+      <article class="card">
+        <h3>Esperanza / Media</h3>
+        <div class="formula-label">Fórmula</div>
+        <div class="formula">$$E(X) = \mu = \sum x_i \cdot f(x_i)$$</div>
+        <div class="sumilla">
+          <strong>Sumilla:</strong> Es el promedio ponderado o valor medio esperado a largo plazo tras repetir el experimento muchas veces.
+        </div>
+      </article>
+
+      <!-- Varianza -->
+      <article class="card">
+        <h3>Varianza</h3>
+        <div class="formula-label">Fórmula original</div>
+        <div class="formula">$$Var(X) = \sum (x_i - \mu)^2 \cdot f(x_i)$$</div>
+        <div class="formula-label">Fórmula práctica</div>
+        <div class="formula">$$Var(X) = E(X^2) - \mu^2$$</div>
+        <div class="sumilla">
+          <strong>Sumilla:</strong> Mide la dispersión promedio de los datos al cuadrado respecto a la media.
+        </div>
+      </article>
+
+      <!-- Desviación estándar -->
+      <article class="card">
+        <h3>Desviación Estándar</h3>
+        <div class="formula-label">Fórmula</div>
+        <div class="formula">$$\sigma = \sqrt{Var(X)}$$</div>
+        <div class="sumilla">
+          <strong>Sumilla:</strong> Mide la dispersión o variación típica de los valores en las mismas unidades originales que la variable $X$.
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3. SECCIÓN 2 -->
+  <section>
+    <div class="seccion-titulo">
+      <div class="num">2</div>
+      <h2>Asimetría ($S_k$)</h2>
+    </div>
+
+    <div class="grid grid-2">
+      <article class="card">
+        <h3>Coeficiente de Asimetría</h3>
+        <div class="formula-label">Fórmula</div>
+        <div class="formula">$$S_k = \frac{\mu_3}{\sigma^3} = \frac{E[(X - \mu)^3]}{\sigma^3}$$</div>
+        <div class="formula-label">Fórmula desarrollada para $\mu_3$</div>
+        <div class="formula">$$\mu_3 = E(X^3) - 3\mu E(X^2) + 2\mu^3$$</div>
+      </article>
+
+      <article class="card">
+        <h3>Criterios de interpretación</h3>
+        <table>
+          <thead>
+            <tr><th>Valor</th><th>Interpretación</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>$S_k = 0$</td>
+              <td><span class="badge verde">Simétrica</span> Distribución Simétrica.</td>
+            </tr>
+            <tr>
+              <td>$S_k > 0$</td>
+              <td><span class="badge azul">Positiva</span> Asimetría Positiva (sesgada a la derecha).</td>
+            </tr>
+            <tr>
+              <td>$S_k < 0$</td>
+              <td><span class="badge rojo">Negativa</span> Asimetría Negativa (sesgada a la izquierda).</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <!-- 4. SECCIÓN 3 -->
+  <section>
+    <div class="seccion-titulo">
+      <div class="num">3</div>
+      <h2>Curtosis ($K_x$)</h2>
+    </div>
+
+    <div class="grid grid-2">
+      <article class="card">
+        <h3>Coeficiente de Curtosis</h3>
+        <div class="formula-label">Fórmula</div>
+        <div class="formula">$$K_x = \frac{\mu_4}{\sigma^4} = \frac{E[(X - \mu)^4]}{\sigma^4}$$</div>
+        <div class="sumilla">
+          <strong>Sumilla:</strong> Se compara con la distribución normal, cuyo valor de referencia es $K_x = 3$.
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>Criterios de interpretación</h3>
+        <table>
+          <thead>
+            <tr><th>Valor</th><th>Interpretación</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>$K_x = 3$</td>
+              <td><span class="badge verde">Mesocúrtica</span> Apuntamiento normal.</td>
+            </tr>
+            <tr>
+              <td>$K_x > 3$</td>
+              <td><span class="badge ambar">Leptocúrtica</span> Muy apuntada / colas pesadas.</td>
+            </tr>
+            <tr>
+              <td>$K_x < 3$</td>
+              <td><span class="badge azul">Platicúrtica</span> Plana o achatada.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <!-- 5. SECCIÓN 4 -->
+  <section>
+    <div class="seccion-titulo">
+      <div class="num">4</div>
+      <h2>Ejemplo Integrador de Referencia</h2>
+    </div>
+
+    <article class="card">
+      <h3>Caso: Llamadas de reclamo</h3>
+      <div class="formula-label">Función de probabilidad $f(x)$</div>
+      <table>
+        <thead>
+          <tr>
+            <th class="centro">$x_i$</th>
+            <th class="centro">0</th>
+            <th class="centro">1</th>
+            <th class="centro">2</th>
+            <th class="centro">3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="centro"><strong>$f(x_i)$</strong></td>
+            <td class="centro">0.1</td>
+            <td class="centro">0.4</td>
+            <td class="centro">0.3</td>
+            <td class="centro">0.2</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="formula-label" style="margin-top:18px;">Resultados</div>
+      <div class="resultados">
+        <div class="resultado">
+          <div class="nombre">Media</div>
+          <div class="valor">$\mu = 1.6$</div>
+          <div class="interp">Promedio esperado de llamadas</div>
+        </div>
+        <div class="resultado">
+          <div class="nombre">Desviación estándar</div>
+          <div class="valor">$\sigma = 0.92$</div>
+          <div class="interp">Variación típica</div>
+        </div>
+        <div class="resultado">
+          <div class="nombre">Asimetría</div>
+          <div class="valor">$S_k = +0.094$</div>
+          <div class="interp"><span class="badge azul">Asimétrica positiva</span></div>
+        </div>
+        <div class="resultado">
+          <div class="nombre">Curtosis</div>
+          <div class="valor">$K_x = 2.10$</div>
+          <div class="interp"><span class="badge azul">Platicúrtica</span></div>
+        </div>
+      </div>
+
+      <details class="interactivo">
+        <summary>Ver verificación rápida de la media y la varianza</summary>
+        <div class="contenido">
+          $$E(X) = 0(0.1) + 1(0.4) + 2(0.3) + 3(0.2) = 1.6$$
+          $$E(X^2) = 0^2(0.1) + 1^2(0.4) + 2^2(0.3) + 3^2(0.2) = 3.4$$
+          $$Var(X) = E(X^2) - \mu^2 = 3.4 - 1.6^2 = 0.84 \;\Rightarrow\; \sigma = \sqrt{0.84} \approx 0.92$$
+        </div>
+      </details>
+    </article>
+
+    <div class="nota">
+      <strong>Recuerda:</strong> una asimetría cercana a 0 indica una distribución casi simétrica, y una curtosis menor que 3 indica un apuntamiento más plano que el de la distribución normal.
+    </div>
+  </section>
+
+  <footer>
+    Ficha de repaso · Variable Aleatoria Discreta · Estadística
+  </footer>
+
+</div>
+</body>
+</html>

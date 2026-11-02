@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelos de Distribución Discreta</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --azul-900: #12304f;
+    --azul-700: #1f4e79;
+    --azul-500: #2e75b6;
+    --azul-100: #e3eef9;
+    --azul-50: #f2f7fc;
+    --gris-900: #2b3440;
+    --gris-600: #5b6675;
+    --gris-300: #d5dbe3;
+    --gris-100: #f3f5f8;
+    --blanco: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--gris-100);
+    color: var(--gris-900);
+    line-height: 1.6;
+    padding: 0 16px 48px;
+  }
+  .contenedor { max-width: 1050px; margin: 0 auto; }
+
+  /* Barra de navegación */
+  nav.barra {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--blanco);
+    border-bottom: 1px solid var(--gris-300);
+    margin: 0 -16px 24px;
+    padding: 10px 16px;
+  }
+  nav.barra .interior {
+    max-width: 1050px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  nav.barra a {
+    text-decoration: none; font-size: 0.85rem; font-weight: 600;
+    color: var(--azul-700); background: var(--azul-50);
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--azul-100);
+  }
+  nav.barra a:hover, nav.barra a:focus-visible { background: var(--azul-100); outline: 2px solid var(--azul-500); }
+  nav.barra a.volver { background: var(--azul-700); color: var(--blanco); border-color: var(--azul-700); margin-right: auto; }
+  nav.barra a.volver:hover { background: var(--azul-900); }
+
+  header.titulo {
+    background: linear-gradient(135deg, var(--azul-900), var(--azul-500));
+    color: var(--blanco);
+    padding: 30px 28px; border-radius: 16px; margin-bottom: 26px;
+  }
+  header.titulo h1 { font-size: 1.9rem; line-height: 1.25; }
+  header.titulo p { margin-top: 8px; opacity: 0.92; max-width: 70ch; }
+
+  .reconocer {
+    background: var(--blanco); border: 1px solid var(--gris-300);
+    border-left: 5px solid var(--azul-700); border-radius: 12px;
+    padding: 20px 22px; margin-bottom: 26px;
+  }
+  .reconocer h2 { color: var(--azul-900); font-size: 1.25rem; }
+  .reconocer > p { color: var(--gris-600); font-size: 0.93rem; margin-bottom: 10px; }
+  .reglas { list-style: none; }
+  .reglas li {
+    display: grid; grid-template-columns: 1fr auto 11rem; gap: 12px; align-items: center;
+    padding: 9px 4px; border-bottom: 1px solid var(--gris-100);
+  }
+  .reglas li:last-child { border-bottom: none; }
+  .reglas .flecha { color: var(--azul-500); }
+  .reglas a {
+    text-decoration: none; font-weight: 700; color: var(--azul-700);
+    background: var(--azul-50); border: 1px solid var(--azul-100);
+    padding: 4px 12px; border-radius: 20px; text-align: center;
+  }
+  .reglas a:hover, .reglas a:focus-visible { background: var(--azul-100); outline: 2px solid var(--azul-500); }
+  @media (max-width: 520px) {
+    .reglas li { grid-template-columns: 1fr; gap: 4px; }
+    .reglas .flecha { display: none; }
+    .reglas a { justify-self: start; }
+  }
+
+  .tabla-resumen { overflow-x: auto; background: var(--blanco); border: 1px solid var(--gris-300); border-radius: 14px; margin-bottom: 30px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+  th, td { padding: 10px 14px; text-align: left; white-space: nowrap; }
+  thead th { background: var(--azul-700); color: var(--blanco); }
+  tbody tr:nth-child(even) { background: var(--azul-50); }
+  tbody tr { border-bottom: 1px solid var(--gris-300); }
+  tbody td a { color: var(--azul-700); font-weight: 600; text-decoration: none; }
+  tbody td a:hover { text-decoration: underline; }
+
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); }
+  article.card {
+    background: var(--blanco);
+    border: 1px solid var(--gris-300);
+    border-left: 5px solid var(--azul-500);
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+  article.card h2 { color: var(--azul-900); font-size: 1.2rem; margin-bottom: 4px; }
+  article.card .uso { color: var(--gris-600); font-size: 0.93rem; margin-bottom: 8px; }
+  .etiqueta { font-size: 0.78rem; font-weight: 700; color: var(--gris-600); margin-top: 10px; }
+  .formula {
+    background: var(--azul-50); border-radius: 8px;
+    padding: 8px 12px; margin: 4px 0; overflow-x: auto; text-align: center;
+  }
+  .nota-corr {
+    margin-top: 10px; font-size: 0.85rem; color: var(--gris-900);
+    background: #fff6e0; border: 1px solid #ecd08a; border-radius: 8px; padding: 8px 12px;
+  }
+  .params { margin-top: 8px; font-size: 0.9rem; color: var(--gris-900); }
+  .params li { margin-left: 18px; }
+
+  .pie {
+    margin-top: 30px; padding: 18px; text-align: center;
+    background: var(--blanco); border: 1px dashed var(--gris-300); border-radius: 12px;
+  }
+  .pie a {
+    display: inline-block; margin-top: 6px; text-decoration: none; font-weight: 600;
+    background: var(--azul-700); color: var(--blanco); padding: 9px 20px; border-radius: 8px;
+  }
+  .pie a:hover { background: var(--azul-900); }
+
+  @media (max-width: 520px) {
+    .grid { grid-template-columns: 1fr; }
+    header.titulo h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <nav class="barra">
+    <div class="interior">
+      <a class="volver" href="sumillado_variable_aleatoria_discreta.html">← Sumillado: Medidas descriptivas</a>
+      <a href="#reconocer">Reconocer</a>
+      <a href="#binomial">Binomial</a>
+      <a href="#bernoulli">Bernoulli</a>
+      <a href="#poisson">Poisson</a>
+      <a href="#hipergeometrica">Hipergeométrica</a>
+      <a href="#geometrica">Geométrica</a>
+      <a href="#uniforme">Uniforme</a>
+      <a href="#multinomial">Multinomial</a>
+    </div>
+  </nav>
+
+  <header class="titulo">
+    <h1>Modelos de Distribución Discreta</h1>
+    <p>Siete modelos con su función de probabilidad, esperanza y varianza. Úsalos junto con las medidas descriptivas de la ficha anterior.</p>
+  </header>
+
+  <section class="reconocer" id="reconocer">
+    <h2>¿Cómo reconocer el modelo?</h2>
+    <p>Identifica la situación del problema y elige el modelo.</p>
+    <ul class="reglas">
+      <li><span class="pista">1 ensayo + 2 opciones</span><span class="flecha">$\rightarrow$</span><a href="#bernoulli">Bernoulli</a></li>
+      <li><span class="pista">$n$ ensayos + 2 opciones + con reemplazo</span><span class="flecha">$\rightarrow$</span><a href="#binomial">Binomial</a></li>
+      <li><span class="pista">$n$ ensayos + 2 opciones + sin reemplazo</span><span class="flecha">$\rightarrow$</span><a href="#hipergeometrica">Hipergeométrica</a></li>
+      <li><span class="pista">$n$ ensayos + más de 2 opciones</span><span class="flecha">$\rightarrow$</span><a href="#multinomial">Multinomial</a></li>
+      <li><span class="pista">Intentos hasta el $1^{\text{er}}$ éxito</span><span class="flecha">$\rightarrow$</span><a href="#geometrica">Geométrica</a></li>
+      <li><span class="pista">Eventos en un intervalo de tiempo o espacio</span><span class="flecha">$\rightarrow$</span><a href="#poisson">Poisson</a></li>
+      <li><span class="pista">Equiprobabilidad de $k$ resultados</span><span class="flecha">$\rightarrow$</span><a href="#uniforme">Uniforme discreta</a></li>
+    </ul>
+  </section>
+
+  <div class="tabla-resumen">
+    <table>
+      <thead><tr><th>Modelo</th><th>Parámetros</th><th>$E(X)$</th><th>$Var(X)$</th></tr></thead>
+      <tbody>
+        <tr><td><a href="#binomial">Binomial</a></td><td>$n,\ p$</td><td>$np$</td><td>$npq$</td></tr>
+        <tr><td><a href="#bernoulli">Bernoulli</a></td><td>$p$</td><td>$p$</td><td>$pq$</td></tr>
+        <tr><td><a href="#poisson">Poisson</a></td><td>$\lambda$</td><td>$\lambda$</td><td>$\lambda$</td></tr>
+        <tr><td><a href="#hipergeometrica">Hipergeométrica</a></td><td>$N,\ n,\ k$</td><td>$\dfrac{nk}{N}$</td><td>$npq\,\dfrac{N-n}{N-1}$</td></tr>
+        <tr><td><a href="#geometrica">Geométrica</a></td><td>$p$</td><td>$\dfrac{1}{p}$</td><td>$\dfrac{q}{p^2}$</td></tr>
+        <tr><td><a href="#uniforme">Uniforme</a></td><td>$n$</td><td>$\dfrac{n+1}{2}$</td><td>$\dfrac{n^2-1}{12}$</td></tr>
+        <tr><td><a href="#multinomial">Multinomial</a></td><td>$n,\ p_1,\dots,p_k$</td><td>$np_i$</td><td>$np_i q_i$</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid">
+
+    <article class="card" id="binomial">
+      <h2>1. Distribución Binomial</h2>
+      <p class="uso">Número de éxitos en $n$ ensayos independientes de Bernoulli.</p>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$b(x;n,p)=\binom{n}{x}p^x(1-p)^{n-x};\quad x=0,1,\dots,n$$</div>
+      <div class="etiqueta">Esperanza y varianza</div>
+      <div class="formula">$$E(X)=np,\qquad Var(X)=npq$$</div>
+      <ul class="params"><li>$p$: probabilidad de éxito; $q=1-p$.</li><li>Con $p=0.5$ y $n$ creciente (40, 80, 160) la forma se vuelve más simétrica y aplanada.</li></ul>
+    </article>
+
+    <article class="card" id="bernoulli">
+      <h2>2. Distribución de Bernoulli</h2>
+      <p class="uso">Un solo ensayo con dos resultados: éxito o fracaso.</p>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$P(X=1)=p;\qquad P(X=0)=1-p$$</div>
+      <div class="etiqueta">Esperanza y varianza</div>
+      <div class="formula">$$E(X)=p,\qquad Var(X)=p(1-p)=pq$$</div>
+      <div class="etiqueta">Función de distribución</div>
+      <div class="formula">$$F(x)=\begin{cases}0, & x<0\\ 1-p, & 0\le x<1\\ 1, & x\ge 1\end{cases}$$</div>
+      <div class="nota-corr"><strong>Ojo:</strong> la diapositiva escribe $Var(X)=1-p$; lo correcto es $p(1-p)$.</div>
+    </article>
+
+    <article class="card" id="poisson">
+      <h2>3. Distribución de Poisson</h2>
+      <p class="uso">Número de eventos por unidad de tiempo o de espacio.</p>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$P(x)=\frac{\lambda^x\, e^{-\lambda}}{x!};\quad x=0,1,2,\dots$$</div>
+      <div class="etiqueta">Esperanza y varianza</div>
+      <div class="formula">$$E(X)=\lambda,\qquad Var(X)=\lambda$$</div>
+      <ul class="params"><li>$\lambda$: número promedio de eventos esperados por unidad de tiempo o de espacio.</li><li>Para $\lambda$ pequeño (1) es muy asimétrica; con $\lambda=10$ se acerca a una forma simétrica.</li></ul>
+    </article>
+
+    <article class="card" id="hipergeometrica">
+      <h2>4. Distribución Hipergeométrica</h2>
+      <p class="uso">Muestreo sin reemplazo con dos resultados posibles (éxito y fracaso). Frecuente en control de calidad.</p>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$P(X=x)=\frac{\binom{k}{x}\binom{N-k}{n-x}}{\binom{N}{n}}$$</div>
+      <div class="etiqueta">Esperanza y varianza</div>
+      <div class="formula">$$E(X)=\frac{nk}{N},\qquad Var(X)=npq\left(\frac{N-n}{N-1}\right)$$</div>
+      <ul class="params">
+        <li>$N$: elementos de la población.</li>
+        <li>$n$: elementos de la muestra.</li>
+        <li>$k$: elementos de la población que cumplen la característica.</li>
+        <li>$x$: éxitos obtenidos en la muestra.</li>
+        <li>$p=k/N$ y $q=1-p$.</li>
+      </ul>
+    </article>
+
+    <article class="card" id="geometrica">
+      <h2>5. Distribución Geométrica</h2>
+      <p class="uso">Ensayos de Bernoulli hasta el primer éxito; se usa en tiempos de espera.</p>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$P(X=x)=(1-p)^{x-1}p;\quad x=1,2,3,\dots$$</div>
+      <div class="etiqueta">Esperanza y varianza</div>
+      <div class="formula">$$E(X)=\frac{1}{p},\qquad Var(X)=\frac{1-p}{p^2}$$</div>
+      <ul class="params"><li>$p$: probabilidad de éxito.</li><li>$X$ cuenta los intentos hasta lograr el primer éxito, incluido ese intento.</li></ul>
+    </article>
+
+    <article class="card" id="uniforme">
+      <h2>6. Distribución Uniforme</h2>
+      <p class="uso">Todos los valores tienen la misma probabilidad, como las caras de un dado.</p>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$f_X(x)=P(X=x)=\begin{cases}\dfrac{1}{n}, & x=x_1,x_2,\dots,x_n\\[4pt] 0, & \text{en otro caso}\end{cases}$$</div>
+      <div class="etiqueta">Esperanza y varianza (para $x=1,2,\dots,n$)</div>
+      <div class="formula">$$E(X)=\frac{n+1}{2},\qquad Var(X)=\frac{n^2-1}{12}$$</div>
+      <ul class="params"><li>Dado de 6 caras: $f(x)=1/6\approx 0.167$ para cada cara.</li></ul>
+    </article>
+
+    <article class="card" id="multinomial">
+      <h2>7. Distribución Multinomial</h2>
+      <p class="uso">Generalización de la binomial cuando hay más de dos resultados posibles.</p>
+      <div class="etiqueta">Denotación</div>
+      <div class="formula">$$f(x_1,x_2,\dots,x_k;\,n,p_1,p_2,\dots,p_k)$$</div>
+      <div class="etiqueta">Función de probabilidad</div>
+      <div class="formula">$$f=\frac{n!}{x_1!\,x_2!\cdots x_k!}\;p_1^{x_1}p_2^{x_2}\cdots p_k^{x_k}$$</div>
+      <ul class="params">
+        <li>$n=\sum x_i$.</li>
+        <li>Cada $x_i$ tiene probabilidad de ocurrencia $p_i$, con $\sum p_i=1$.</li>
+        <li>Para cada categoría: $E(X_i)=np_i$ y $Var(X_i)=np_i(1-p_i)$.</li>
+      </ul>
+      <div class="nota-corr"><strong>Ojo:</strong> el denominador de la diapositiva termina en $x_3!$; debe llegar hasta $x_k!$.</div>
+    </article>
+
+  </div>
+
+  <div class="pie">
+    <p>¿Quieres repasar cómo calcular media, varianza, asimetría y curtosis de estos modelos?</p>
+    <a href="sumillado_variable_aleatoria_discreta.html">Ir al Sumillado: Medidas descriptivas</a>
+  </div>
+
+</div>
+</body>
+</html>

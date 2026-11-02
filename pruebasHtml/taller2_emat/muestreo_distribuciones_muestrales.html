@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muestreo y Distribuciones Muestrales</title>
+<script>
+  window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --azul-900:#12304f; --azul-700:#1f4e79; --azul-500:#2e75b6; --azul-100:#e3eef9; --azul-50:#f2f7fc;
+    --gris-900:#2b3440; --gris-600:#5b6675; --gris-300:#d5dbe3; --gris-100:#f3f5f8; --blanco:#fff;
+    --verde:#2e8b57; --ambar:#d98e04;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; scroll-padding-top:76px; }
+  body { font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif; background:var(--gris-100); color:var(--gris-900); line-height:1.6; padding:0 16px 48px; }
+  .contenedor { max-width:1050px; margin:0 auto; }
+
+  nav.barra { position:sticky; top:0; z-index:10; background:var(--blanco); border-bottom:1px solid var(--gris-300); margin:0 -16px 24px; padding:10px 16px; }
+  nav.barra .interior { max-width:1050px; margin:0 auto; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  nav.barra a { text-decoration:none; font-size:.85rem; font-weight:600; color:var(--azul-700); background:var(--azul-50); padding:5px 12px; border-radius:20px; border:1px solid var(--azul-100); }
+  nav.barra a:hover, nav.barra a:focus-visible { background:var(--azul-100); outline:2px solid var(--azul-500); }
+  nav.barra a.ext { background:var(--azul-700); color:var(--blanco); border-color:var(--azul-700); }
+  nav.barra a.ext:hover { background:var(--azul-900); }
+  nav.barra .sep { flex:1; }
+
+  header.titulo { background:linear-gradient(135deg,var(--azul-900),var(--azul-500)); color:var(--blanco); padding:30px 28px; border-radius:16px; margin-bottom:26px; }
+  header.titulo h1 { font-size:1.9rem; line-height:1.25; }
+  header.titulo p { margin-top:8px; opacity:.92; max-width:70ch; }
+
+  section { margin-bottom:32px; }
+  .seccion-titulo { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .seccion-titulo .num { background:var(--azul-700); color:var(--blanco); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; }
+  .seccion-titulo h2 { font-size:1.35rem; color:var(--azul-900); }
+
+  .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr)); }
+  .card { background:var(--blanco); border:1px solid var(--gris-300); border-left:5px solid var(--azul-500); border-radius:12px; padding:20px 22px; }
+  .card h3 { color:var(--azul-700); font-size:1.08rem; margin-bottom:6px; }
+  .card p, .card li { font-size:.95rem; }
+  .card ul { margin:6px 0 0 18px; }
+  .etiqueta { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--gris-600); margin-top:10px; }
+  .formula { background:var(--azul-50); border-radius:8px; padding:8px 12px; margin:4px 0; overflow-x:auto; text-align:center; }
+  .sumilla { margin-top:10px; padding:9px 12px; background:var(--gris-100); border-radius:8px; font-size:.92rem; }
+  .sumilla strong { color:var(--azul-700); }
+  .alerta { margin-top:10px; font-size:.86rem; background:#fff6e0; border:1px solid #ecd08a; border-radius:8px; padding:8px 12px; }
+
+  .tabla { overflow-x:auto; background:var(--blanco); border:1px solid var(--gris-300); border-radius:12px; margin-top:10px; }
+  table { width:100%; border-collapse:collapse; font-size:.93rem; }
+  th, td { padding:10px 14px; text-align:left; }
+  thead th { background:var(--azul-700); color:var(--blanco); white-space:nowrap; }
+  tbody tr:nth-child(even) { background:var(--azul-50); }
+  tbody tr { border-bottom:1px solid var(--gris-300); }
+  td.n, th.n { text-align:center; }
+
+  .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.8rem; font-weight:700; color:#fff; background:var(--azul-500); }
+  .badge.verde { background:var(--verde); } .badge.ambar { background:var(--ambar); }
+
+  details { margin-top:12px; background:var(--blanco); border:1px solid var(--gris-300); border-radius:10px; padding:10px 14px; }
+  summary { cursor:pointer; font-weight:600; color:var(--azul-700); }
+  details .cont { margin-top:10px; font-size:.93rem; }
+  details .cont p { margin-bottom:6px; }
+  .resp { display:inline-block; margin-top:6px; background:var(--azul-100); color:var(--azul-900); font-weight:700; padding:3px 12px; border-radius:20px; }
+
+  .pie { margin-top:30px; padding:18px; text-align:center; background:var(--blanco); border:1px dashed var(--gris-300); border-radius:12px; }
+  .pie a { display:inline-block; margin:6px 4px 0; text-decoration:none; font-weight:600; background:var(--azul-700); color:#fff; padding:9px 20px; border-radius:8px; }
+  .pie a:hover { background:var(--azul-900); }
+  @media (max-width:520px) { header.titulo h1 { font-size:1.5rem; } }
+  @media print { details { display:block; } nav.barra { position:static; } }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <nav class="barra">
+    <div class="interior">
+      <a href="#muestreo">Muestreo</a>
+      <a href="#media">Media</a>
+      <a href="#dif-medias">Dif. de medias</a>
+      <a href="#proporcion">Proporciones</a>
+      <a href="#dif-prop">Dif. de proporciones</a>
+      <a href="#varianza">Varianza</a>
+      <a href="#resumen">Resumen</a>
+      <span class="sep"></span>
+      <a class="ext" href="sumillado_variable_aleatoria_discreta.html">Medidas descriptivas</a>
+      <a class="ext" href="modelos_distribucion_discreta.html">Modelos discretos</a>
+    </div>
+  </nav>
+
+  <header class="titulo">
+    <h1>Muestreo y Distribuciones Muestrales</h1>
+    <p>Cómo seleccionar una muestra y cómo se distribuyen los estadísticos (media, diferencia de medias, proporción y varianza) para hacer inferencia sobre la población.</p>
+  </header>
+
+  <!-- 1. MUESTREO -->
+  <section id="muestreo">
+    <div class="seccion-titulo"><div class="num">1</div><h2>Muestreo</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>¿Para qué sirve una muestra?</h3>
+        <p>Cuando no es posible hacer un censo, se toma una muestra: una parte representativa de la población. Con ella se infieren las características de la población, que muchas veces se desconocen (sus parámetros, o incluso la forma de su distribución).</p>
+        <div class="sumilla"><strong>Teoría de muestreo:</strong> estudia la relación entre una población y las muestras extraídas de ella, y ayuda a decidir si la diferencia entre dos muestras se debe al azar o es realmente significativa.</div>
+      </article>
+      <article class="card">
+        <h3>Tipos de muestreo</h3>
+        <ul>
+          <li><strong>Probabilístico:</strong> se basa en la equiprobabilidad; todas las muestras posibles de tamaño $n$ tienen la misma probabilidad de ser elegidas.</li>
+          <li><strong>No probabilístico:</strong> no todos los sujetos tienen la misma probabilidad de ser elegidos; se escogen con ciertos criterios, buscando que la muestra sea representativa.</li>
+        </ul>
+        <div class="sumilla"><strong>Muestreo aleatorio simple (m.a.s.):</strong> el más importante, base de los demás. Se numeran los elementos de la población y se eligen al azar; todos tienen la misma probabilidad. Se puede usar una tabla de dígitos aleatorios o una urna.</div>
+      </article>
+      <article class="card">
+        <h3>Número de muestras posibles</h3>
+        <div class="etiqueta">Con reemplazo (el orden importa)</div>
+        <div class="formula">$$N^n$$</div>
+        <div class="etiqueta">Sin reemplazo y sin importar el orden</div>
+        <div class="formula">$$\binom{N}{n}$$</div>
+        <p>$N$: tamaño de la población; $n$: tamaño de la muestra.</p>
+      </article>
+      <article class="card">
+        <h3>Ejemplo 1: expedientes</h3>
+        <p>Elegir 5 expedientes numerados con 4 dígitos.</p>
+        <div class="sumilla">Se ordenan del 0001 al 8000 y se eligen 5 números aleatorios en ese rango, con una tabla de números aleatorios (se busca un punto inicial $(i,j)$ y se completan los cinco) o sacando papelitos de una urna.</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 2. MEDIA -->
+  <section id="media">
+    <div class="seccion-titulo"><div class="num">2</div><h2>Distribución muestral de la media</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Concepto</h3>
+        <p>Si el estadístico es la media muestral $\bar{x}$, su distribución se llama distribución muestral de la media. Del mismo modo existen distribuciones muestrales de la varianza, la proporción, la mediana, etc.</p>
+        <div class="sumilla"><strong>Error estándar:</strong> es la desviación estándar de la distribución muestral de un estadístico.</div>
+      </article>
+      <article class="card">
+        <h3>Teorema 1: media y varianza de $\bar{x}$</h3>
+        <div class="etiqueta">Con reemplazo (o población infinita)</div>
+        <div class="formula">$$\mu_{\bar{x}}=\mu,\qquad \sigma^2_{\bar{x}}=\frac{\sigma^2}{n}$$</div>
+        <div class="etiqueta">Sin reemplazo (población finita)</div>
+        <div class="formula">$$\mu_{\bar{x}}=\mu,\qquad \sigma^2_{\bar{x}}=\frac{\sigma^2}{n}\left(\frac{N-n}{N-1}\right)$$</div>
+        <div class="sumilla"><strong>Factor de corrección</strong> $\left(\frac{N-n}{N-1}\right)$: se puede ignorar cuando $n/N\le 0.05$ (la muestra es el 5% o menos de la población).</div>
+      </article>
+      <article class="card">
+        <h3>Teorema 2: Límite Central</h3>
+        <p>Al extraer muestras aleatorias simples de tamaño $n$, la distribución de $\bar{x}$ se aproxima a una normal cuando $n$ es grande:</p>
+        <div class="formula">$$\bar{x}\sim N\!\left(\mu,\ \frac{\sigma}{\sqrt{n}}\right),\qquad Z=\frac{\bar{x}-\mu}{\sigma/\sqrt{n}}$$</div>
+      </article>
+      <article class="card">
+        <h3>Nota: varianza poblacional desconocida</h3>
+        <p>Si no se conoce $\sigma^2$, se usa la $t$ de Student con $n-1$ grados de libertad:</p>
+        <div class="formula">$$t=\frac{\bar{x}-\mu}{s/\sqrt{n}}$$</div>
+      </article>
+    </div>
+
+    <details>
+      <summary>Ejercicio 1 (resuelto): población $P=\{1,2,3,4\}$, muestras de tamaño 2</summary>
+      <div class="cont">
+        <p>Parámetros de la población: $\mu=\frac{1+2+3+4}{4}=2.5$ y $\sigma^2=\frac{(1.5)^2+(0.5)^2+(0.5)^2+(1.5)^2}{4}=1.25$.</p>
+        <p><strong>Con reposición:</strong> hay $4^2=16$ muestras. $E(\bar{x})=2.5$ y $Var(\bar{x})=\frac{1.25}{2}=0.625$.</p>
+        <p><strong>Sin reposición:</strong> hay $\binom{4}{2}=6$ muestras. $E(\bar{x})=2.5$ y $Var(\bar{x})=\frac{1.25}{2}\left(\frac{4-2}{4-1}\right)\approx 0.417$.</p>
+        <p>Comprobación con las 6 medias (1.5, 2, 2.5, 2.5, 3, 3.5): su media es 2.5 y su varianza es $\frac{1+0.25+0+0+0.25+1}{6}=0.417$.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Ejemplo 2 (resuelto): $n=25$, $\mu=106$, $\sigma=12$, $P(\bar{x}>110)$</summary>
+      <div class="cont">
+        <p>Como la población es normal, $\bar{x}\sim N(106,\ 12/\sqrt{25}=2.4)$.</p>
+        <div class="formula">$$z=\frac{110-106}{2.4}=1.67\ \Rightarrow\ P(z>1.67)=0.0475$$</div>
+        <span class="resp">≈ 0.0474 (según la tabla del apunte)</span>
+      </div>
+    </details>
+
+    <details>
+      <summary>Ejercicio 2 (resuelto): 1500 empleados, $\mu=25.75$, $\sigma=5.25$, $n=100$, $P(25\le\bar{x}\le27)$</summary>
+      <div class="cont">
+        <p>Como $n/N=100/1500\approx0.067>0.05$, se usa el factor de corrección:</p>
+        <div class="formula">$$\sigma_{\bar{x}}=\frac{5.25}{\sqrt{100}}\sqrt{\frac{1500-100}{1500-1}}\approx 0.507$$</div>
+        <div class="formula">$$P\!\left(\frac{25-25.75}{0.507}\le z\le\frac{27-25.75}{0.507}\right)=P(-1.48\le z\le 2.46)\approx 0.92$$</div>
+        <span class="resp">≈ 0.92</span>
+      </div>
+    </details>
+  </section>
+
+  <!-- 3. DIFERENCIA DE MEDIAS -->
+  <section id="dif-medias">
+    <div class="seccion-titulo"><div class="num">3</div><h2>Distribución muestral de la diferencia de medias</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Concepto y fórmulas</h3>
+        <p>Se comparan dos poblaciones mediante $(\bar{x}_1-\bar{x}_2)$, con muestras independientes.</p>
+        <div class="formula">$$\mu_{\bar{x}_1-\bar{x}_2}=\mu_1-\mu_2$$</div>
+        <div class="formula">$$\sigma_{\bar{x}_1-\bar{x}_2}=\sqrt{\frac{\sigma_1^2}{n_1}+\frac{\sigma_2^2}{n_2}}$$</div>
+        <div class="sumilla">Si la población es pequeña y el muestreo es sin reemplazo, se aplica el factor de corrección del Teorema 1 a cada término.</div>
+      </article>
+      <article class="card">
+        <h3>Ejemplo 3: puntajes de matemática</h3>
+        <p>$\mu_1=50,\ \sigma_1^2=40,\ n_1=10$ y $\mu_2=40,\ \sigma_2^2=60,\ n_2=12$. Hallar $P(5<\bar{x}_1-\bar{x}_2<15)$.</p>
+        <div class="formula">$$\mu=10,\quad \sigma^2=\frac{40}{10}+\frac{60}{12}=9,\quad \sigma=3$$</div>
+        <div class="formula">$$P\!\left(\frac{5-10}{3}<z<\frac{15-10}{3}\right)=P(-1.67<z<1.67)=0.9050$$</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 4. PROPORCIONES -->
+  <section id="proporcion">
+    <div class="seccion-titulo"><div class="num">4</div><h2>Distribución muestral de proporciones</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Concepto</h3>
+        <p>Si cada miembro de la población tiene o no un rasgo, la población sigue una distribución binomial. Sea $P$ la proporción poblacional y $x$ el número de individuos con el rasgo en la muestra; la proporción muestral es:</p>
+        <div class="formula">$$\hat{p}=\frac{x}{n}$$</div>
+        <div class="sumilla"><strong>Aproximación normal:</strong> es adecuada si $nP>5$ y $nQ>5$.</div>
+      </article>
+      <article class="card">
+        <h3>Media y varianza de $\hat{p}$</h3>
+        <div class="formula">$$\mu_{\hat{p}}=E\!\left(\frac{x}{n}\right)=\frac{1}{n}(nP)=P$$</div>
+        <div class="formula">$$\sigma^2_{\hat{p}}=\frac{1}{n^2}(nPQ)=\frac{P(1-P)}{n}$$</div>
+        <div class="formula">$$Z=\frac{\hat{p}-P}{\sqrt{P(1-P)/n}}$$</div>
+      </article>
+      <article class="card">
+        <h3>Ejemplo 4: apoyo a un candidato</h3>
+        <p>El 40% apoya a PPK; muestra de $n=10$. Hallar $P(\hat{p}=0.60)$. Con $n$ pequeño se usa la binomial directamente:</p>
+        <div class="formula">$$P\!\left(\frac{x}{10}=0.6\right)=P(x=6)=\binom{10}{6}(0.40)^6(0.60)^4=0.1115$$</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 5. DIF PROPORCIONES -->
+  <section id="dif-prop">
+    <div class="seccion-titulo"><div class="num">5</div><h2>Distribución muestral de la diferencia de proporciones</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Fórmulas</h3>
+        <p>Con $p_1$ calculada en muestras de tamaño $n_1$ (parámetro $P_1$) y $p_2$ en muestras de tamaño $n_2$ (parámetro $P_2$):</p>
+        <div class="formula">$$\mu_{p_1-p_2}=P_1-P_2$$</div>
+        <div class="formula">$$\sigma_{p_1-p_2}=\sqrt{\frac{P_1(1-P_1)}{n_1}+\frac{P_2(1-P_2)}{n_2}}$$</div>
+        <div class="sumilla">Si $n_1$ y $n_2$ son grandes, $(p_1-p_2)$ se aproxima a una distribución normal.</div>
+      </article>
+      <article class="card">
+        <h3>Ejemplo 5: aprobados en RM (UNSA)</h3>
+        <p>Facultad X: $P_X=0.65$, $n_X=45$. Facultad Y: $P_Y=0.45$, $n_Y=35$. Hallar $P(p_X-p_Y>0.30)$.</p>
+        <div class="formula">$$\mu=0.65-0.45=0.20$$</div>
+        <div class="formula">$$\sigma=\sqrt{\frac{0.65(0.35)}{45}+\frac{0.45(0.55)}{35}}=\sqrt{0.0121}\approx0.11$$</div>
+        <div class="formula">$$z=\frac{0.30-0.20}{0.11}\approx 0.91\ \Rightarrow\ P(z>0.91)\approx 0.18$$</div>
+        <div class="alerta"><strong>Ojo:</strong> en el apunte aparecen $P_Y=0.40$ y $0.45$ a la vez, y la media se escribe $0.17$ (debe ser $0.20$) con un término $(0.48)(0.52)$. Aquí lo corregí usando $P_Y=0.45$, que es el dato del enunciado. El apunte llega a $z=1.18$ y $0.119$ con esos valores mezclados.</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 6. VARIANZA -->
+  <section id="varianza">
+    <div class="seccion-titulo"><div class="num">6</div><h2>Distribución muestral de la varianza</h2></div>
+    <div class="grid">
+      <article class="card">
+        <h3>Distribución Chi-cuadrada</h3>
+        <p>Al muestrear una población normal, la varianza muestral se estudia mediante la variable modificada:</p>
+        <div class="formula">$$\chi^2=\frac{(n-1)\,s^2}{\sigma^2}\qquad\text{con } n-1 \text{ grados de libertad}$$</div>
+      </article>
+      <article class="card">
+        <h3>Ejemplo 6: $n=25$, $\sigma^2=9$</h3>
+        <p>Hallar $P(4.075\le s^2\le 15.10125)$, con $n-1=24$ grados de libertad.</p>
+        <div class="formula">$$\frac{24(4.075)}{9}\le\chi^2\le\frac{24(15.10125)}{9}\ \Rightarrow\ 10.85\le\chi^2\le40.27$$</div>
+        <p>En la tabla: $P(10.85\le\chi^2\le40.27)\approx0.97$.</p>
+        <div class="alerta"><strong>Ojo:</strong> el apunte escribe $14(15.10125)$ y $4.071$ en un paso; lo correcto es $24(15.10125)$ y $4.075$.</div>
+      </article>
+    </div>
+
+    <details>
+      <summary>Ejercicios 3 y 4: varianza muestral de $P=\{1,2,3,4\}$, $n=2$, sin reemplazo</summary>
+      <div class="cont">
+        <p>Las 6 muestras son (1,2), (1,3), (1,4), (2,3), (2,4), (3,4). Con $s^2=\frac{\sum(x_i-\bar{x})^2}{n}$ (el valor 0.25 del Ejercicio 4 sugiere este divisor):</p>
+        <div class="tabla">
+          <table>
+            <thead><tr><th class="n">$s^2$</th><th class="n">0.25</th><th class="n">1</th><th class="n">2.25</th></tr></thead>
+            <tbody><tr><td class="n"><strong>$f(s^2)$</strong></td><td class="n">3/6</td><td class="n">2/6</td><td class="n">1/6</td></tr></tbody>
+          </table>
+        </div>
+        <p>Entonces $P(s^2\le0.25)=\frac{3}{6}=0.5$. Si se usara el divisor $n-1$, los valores serían 0.5, 2 y 4.5 y esa probabilidad sería 0.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- RESUMEN -->
+  <section id="resumen">
+    <div class="seccion-titulo"><div class="num">7</div><h2>Resumen: ¿qué distribución muestral uso?</h2></div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Estadístico</th><th>Media</th><th>Desviación (error estándar)</th><th>Distribución</th></tr></thead>
+        <tbody>
+          <tr><td>$\bar{x}$</td><td>$\mu$</td><td>$\dfrac{\sigma}{\sqrt{n}}$</td><td><span class="badge">Normal</span> (TLC, $n$ grande)</td></tr>
+          <tr><td>$\bar{x}$ con $\sigma$ desconocida</td><td>$\mu$</td><td>$\dfrac{s}{\sqrt{n}}$</td><td><span class="badge ambar">$t$ de Student</span> ($n-1$ g.l.)</td></tr>
+          <tr><td>$\bar{x}_1-\bar{x}_2$</td><td>$\mu_1-\mu_2$</td><td>$\sqrt{\dfrac{\sigma_1^2}{n_1}+\dfrac{\sigma_2^2}{n_2}}$</td><td><span class="badge">Normal</span></td></tr>
+          <tr><td>$\hat{p}$</td><td>$P$</td><td>$\sqrt{\dfrac{P(1-P)}{n}}$</td><td><span class="badge">Normal</span> si $nP>5$ y $nQ>5$</td></tr>
+          <tr><td>$p_1-p_2$</td><td>$P_1-P_2$</td><td>$\sqrt{\dfrac{P_1Q_1}{n_1}+\dfrac{P_2Q_2}{n_2}}$</td><td><span class="badge">Normal</span> ($n_1,n_2$ grandes)</td></tr>
+          <tr><td>$s^2$</td><td>—</td><td>se usa $\chi^2=\dfrac{(n-1)s^2}{\sigma^2}$</td><td><span class="badge verde">Chi-cuadrada</span> ($n-1$ g.l.)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="pie">
+    <p>Continúa repasando:</p>
+    <a href="sumillado_variable_aleatoria_discreta.html">Medidas descriptivas</a>
+    <a href="modelos_distribucion_discreta.html">Modelos de distribución discreta</a>
+  </div>
+
+</div>
+</body>
+</html>
