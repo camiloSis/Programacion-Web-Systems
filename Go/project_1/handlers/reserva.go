@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"mayu/middlewares"
 	"mayu/models"
 	"mayu/store"
 	"mayu/utils"
@@ -15,9 +16,16 @@ import (
 )
 
 func (h *API) ListarReservas(c *gin.Context) {
+	u, _ := middlewares.UsuarioActual(c)
+
 	f := store.ReservaFiltro{
 		Estado: c.Query("estado"),
 		Codigo: strings.TrimSpace(c.Query("codigo")),
+	}
+
+	if u.Rol != models.RolAdmin {
+		// un estudiante solo ve sus propias reservas
+		f.Codigo = u.Codigo
 	}
 
 	if fecha := c.Query("fecha"); fecha != "" {
@@ -131,10 +139,15 @@ func (h *API) prepararReserva(c *gin.Context, r *models.Reserva, excluirID int) 
 }
 
 func (h *API) CrearReserva(c *gin.Context) {
+	u, _ := middlewares.UsuarioActual(c)
+
 	var r models.Reserva
 	if err := c.ShouldBindJSON(&r); err != nil {
 		fail(c, http.StatusBadRequest, "El cuerpo JSON no es válido")
 		return
+	}
+	if u.Rol != models.RolAdmin {
+		r.Codigo = u.Codigo // el estudiante siempre reserva con su propio código
 	}
 	if !h.prepararReserva(c, &r, 0) {
 		return
@@ -154,11 +167,17 @@ func (h *API) ActualizarReserva(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.Reservas.Obtener(id); errors.Is(err, sql.ErrNoRows) {
+	u, _ := middlewares.UsuarioActual(c)
+	existente, err := h.Reservas.Obtener(id)
+	if errors.Is(err, sql.ErrNoRows) {
 		fail(c, http.StatusNotFound, "Reserva no encontrada")
 		return
 	} else if err != nil {
 		fail(c, http.StatusInternalServerError, "Error al consultar la reserva")
+		return
+	}
+	if u.Rol != models.RolAdmin && existente.Codigo != u.Codigo {
+		fail(c, http.StatusForbidden, "Solo puede modificar sus propias reservas")
 		return
 	}
 
@@ -186,6 +205,20 @@ func (h *API) ActualizarReserva(c *gin.Context) {
 func (h *API) CancelarReserva(c *gin.Context) {
 	id, okID := idValido(c)
 	if !okID {
+		return
+	}
+
+	u, _ := middlewares.UsuarioActual(c)
+	existente, err := h.Reservas.Obtener(id)
+	if errors.Is(err, sql.ErrNoRows) {
+		fail(c, http.StatusNotFound, "Reserva no encontrada")
+		return
+	} else if err != nil {
+		fail(c, http.StatusInternalServerError, "Error al consultar la reserva")
+		return
+	}
+	if u.Rol != models.RolAdmin && existente.Codigo != u.Codigo {
+		fail(c, http.StatusForbidden, "Solo puede cancelar sus propias reservas")
 		return
 	}
 

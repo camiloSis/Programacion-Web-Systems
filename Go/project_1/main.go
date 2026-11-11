@@ -27,28 +27,40 @@ func main() {
 	r := gin.New()
 	r.Use(middlewares.Logger(), middlewares.Recovery())
 
+	userStore := &store.UserStore{DB: conn}
+	authMw := &middlewares.Auth{Secreto: cfg.Secreto, Users: userStore}
+
 	h := &handlers.API{
 		Ambientes: &store.AmbienteStore{DB: conn},
 		Reservas:  &store.ReservaStore{DB: conn},
+		Users:     userStore,
+		Secreto:   cfg.Secreto,
 	}
 
 	api := r.Group("/api")
 	{
-		api.GET("/ambientes", h.ListarAmbientes)
-		api.POST("/ambientes", h.CrearAmbiente)
-		api.GET("/ambientes/:id", h.ObtenerAmbiente)
-		api.PUT("/ambientes/:id", h.ActualizarAmbiente)
-		api.DELETE("/ambientes/:id", h.EliminarAmbiente)
+		// autenticación
+		api.POST("/auth/login", h.Login)
+		api.POST("/auth/logout", h.Logout)
+		api.GET("/auth/me", authMw.Require(), h.Me)
 
-		api.GET("/disponibilidad", h.AmbientesDisponibles)
+		// ambientes (lectura para todos; escritura solo admin)
+		api.GET("/ambientes", authMw.Require(), h.ListarAmbientes)
+		api.GET("/ambientes/:id", authMw.Require(), h.ObtenerAmbiente)
+		api.POST("/ambientes", authMw.Require(), authMw.RequireAdmin(), h.CrearAmbiente)
+		api.PUT("/ambientes/:id", authMw.Require(), authMw.RequireAdmin(), h.ActualizarAmbiente)
+		api.DELETE("/ambientes/:id", authMw.Require(), authMw.RequireAdmin(), h.EliminarAmbiente)
 
-		api.GET("/reservas", h.ListarReservas)
-		api.POST("/reservas", h.CrearReserva)
-		api.GET("/reservas/:id", h.ObtenerReserva)
-		api.PUT("/reservas/:id", h.ActualizarReserva)
-		api.PATCH("/reservas/:id/cancelar", h.CancelarReserva)
+		api.GET("/disponibilidad", authMw.Require(), h.AmbientesDisponibles)
 
-		api.GET("/estadisticas", h.Estadisticas)
+		// reservas (el estudiante solo ve/modifica las suyas)
+		api.GET("/reservas", authMw.Require(), h.ListarReservas)
+		api.POST("/reservas", authMw.Require(), h.CrearReserva)
+		api.GET("/reservas/:id", authMw.Require(), h.ObtenerReserva)
+		api.PUT("/reservas/:id", authMw.Require(), h.ActualizarReserva)
+		api.PATCH("/reservas/:id/cancelar", authMw.Require(), h.CancelarReserva)
+
+		api.GET("/estadisticas", authMw.Require(), authMw.RequireAdmin(), h.Estadisticas)
 	}
 
 	r.GET("/", func(c *gin.Context) {
@@ -62,6 +74,7 @@ func main() {
 	log.Printf("Mayu corriendo en http://localhost:%d", cfg.Port)
 	log.Printf("Frontend:      http://localhost:%d/", cfg.Port)
 	log.Printf("API:           http://localhost:%d/api/ambientes", cfg.Port)
+	log.Printf("Login:         admin/admin123 | estudiante/estudiante123")
 
 	if err := r.Run(fmt.Sprintf(":%d", cfg.Port)); err != nil {
 		log.Fatalf("error al iniciar el servidor: %v", err)

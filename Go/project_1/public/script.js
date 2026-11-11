@@ -17,6 +17,11 @@ let editandoAmbiente = false;
 let editandoReserva = false;
 let ambientesCache = [];
 let reservasCache = [];
+let usuarioActual = null;
+
+function esAdmin() {
+  return usuarioActual?.rol === 'admin';
+}
 
 /* ================= Helpers ================= */
 
@@ -30,6 +35,11 @@ async function api(ruta, opciones = {}) {
     json = await res.json();
   } catch {
     throw new Error('Respuesta inválida del servidor');
+  }
+  if (res.status === 401) {
+    const appVisible = !document.getElementById('appView').hidden;
+    if (appVisible) mostrarLogin();
+    throw new Error(json.message || 'Debe iniciar sesión');
   }
   if (!res.ok || json.status === 'fail') {
     throw new Error(json.message || 'Error en la solicitud');
@@ -72,7 +82,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
 
-    if (btn.dataset.tab === 'estadisticas') cargarEstadisticas();
+    if (btn.dataset.tab === 'estadisticas' && esAdmin()) cargarEstadisticas();
     if (btn.dataset.tab === 'reservas') cargarSelectAmbientes();
   });
 });
@@ -119,10 +129,11 @@ function renderAmbientes(ambientes) {
       <td>${escapeHtml(a.edificio)} - Piso ${a.piso}</td>
       <td>${escapeHtml(a.recursos || '—')}</td>
       <td>${chip(a.estado)}</td>
+      ${esAdmin() ? `
       <td class="actions">
         <button class="btn small ghost" onclick="editarAmbiente(${i})">Editar</button>
         <button class="btn small danger" onclick="eliminarAmbiente(${a.id})">Eliminar</button>
-      </td>
+      </td>` : ''}
     </tr>`).join('');
 
   empty.hidden = ambientes.length > 0;
@@ -386,6 +397,7 @@ async function cancelarReserva(id) {
 /* ================= Estadísticas ================= */
 
 async function cargarEstadisticas() {
+  if (!esAdmin()) return;
   try {
     const json = await api('/estadisticas');
     renderEstadisticas(json.data);
@@ -426,6 +438,77 @@ function renderEstadisticas(data) {
   document.getElementById('fechasEmpty').hidden = data.reservas_por_fecha.length > 0;
 }
 
+/* ================= Sesión y roles ================= */
+
+function mostrarLogin() {
+  document.getElementById('appView').hidden = true;
+  document.getElementById('loginView').hidden = false;
+  document.getElementById('loginPassword').value = '';
+  usuarioActual = null;
+}
+
+function aplicarRolUI() {
+  const admin = esAdmin();
+
+  document.querySelectorAll('.admin-only').forEach(el => { el.hidden = !admin; });
+
+  document.getElementById('userNombre').textContent = usuarioActual.nombre;
+  const rolChip = document.getElementById('userRol');
+  rolChip.textContent = admin ? 'Administrador' : 'Estudiante';
+  rolChip.className = 'chip ' + usuarioActual.rol;
+
+  document.getElementById('reservasScope').textContent = admin ? '' : '(solo tus reservas)';
+
+  irA(admin ? 'ambientes' : 'disponibilidad');
+}
+
+function iniciarApp(user) {
+  usuarioActual = user;
+  document.getElementById('loginView').hidden = true;
+  document.getElementById('appView').hidden = false;
+  aplicarRolUI();
+  cargarAmbientes();
+  cargarSelectAmbientes();
+  cargarReservas();
+}
+
+async function iniciarSesion(ev) {
+  ev.preventDefault();
+  const errorEl = document.getElementById('loginError');
+  errorEl.hidden = true;
+
+  try {
+    const json = await api('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        usuario: document.getElementById('loginUsuario').value.trim(),
+        password: document.getElementById('loginPassword').value
+      })
+    });
+    iniciarApp(json.data);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
+}
+
+async function cerrarSesion() {
+  try { await api('/auth/logout', { method: 'POST' }); } catch { /* cookie ya caducada */ }
+  mostrarLogin();
+}
+
+async function restaurarSesion() {
+  try {
+    const res = await fetch(API + '/auth/me');
+    if (!res.ok) throw new Error('sin sesión');
+    const json = await res.json();
+    if (json.status !== 'success') throw new Error('sin sesión');
+    iniciarApp(json.data);
+  } catch {
+    mostrarLogin();
+  }
+}
+
 /* ================= Init ================= */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -435,7 +518,5 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('rFecha').value = hoy;
   document.getElementById('rFecha').min = hoy;
 
-  cargarAmbientes();
-  cargarSelectAmbientes();
-  cargarReservas();
+  restaurarSesion();
 });

@@ -6,6 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"mayu/models"
+	"mayu/utils"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -65,6 +68,15 @@ CREATE TABLE IF NOT EXISTS reservas (
 
 CREATE INDEX IF NOT EXISTS idx_reservas_busqueda ON reservas (ambiente_id, fecha, estado);
 CREATE INDEX IF NOT EXISTS idx_reservas_fecha ON reservas (fecha);
+
+CREATE TABLE IF NOT EXISTS users (
+	id            INTEGER PRIMARY KEY AUTOINCREMENT,
+	usuario       TEXT NOT NULL UNIQUE,
+	password_hash TEXT NOT NULL,
+	nombre        TEXT NOT NULL,
+	rol           TEXT NOT NULL CHECK (rol IN ('admin', 'estudiante')),
+	codigo        TEXT
+);
 `
 	_, err := conn.Exec(schema)
 	return err
@@ -97,6 +109,37 @@ func seed(conn *sql.DB) error {
 			`INSERT INTO ambientes (nombre, tipo, capacidad, edificio, piso, recursos, estado, descripcion)
 			 VALUES (?, ?, ?, ?, ?, ?, 'disponible', ?)`,
 			a.nombre, a.tipo, a.capacidad, a.edificio, a.piso, a.recursos, a.descripcion,
+		); err != nil {
+			return err
+		}
+	}
+	return seedUsers(conn)
+}
+
+func seedUsers(conn *sql.DB) error {
+	var n int
+	if err := conn.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&n); err != nil {
+		return err
+	}
+	if n > 0 {
+		return nil
+	}
+
+	usuarios := []struct {
+		usuario, password, nombre, rol, codigo string
+	}{
+		{"admin", "admin123", "Administrador General", models.RolAdmin, ""},
+		{"estudiante", "estudiante123", "Ana Torres Pérez", models.RolEstudiante, "202412345"},
+	}
+
+	for _, u := range usuarios {
+		hash, err := utils.HashPassword(u.password)
+		if err != nil {
+			return err
+		}
+		if _, err := conn.Exec(
+			`INSERT INTO users (usuario, password_hash, nombre, rol, codigo) VALUES (?, ?, ?, ?, ?)`,
+			u.usuario, hash, u.nombre, u.rol, u.codigo,
 		); err != nil {
 			return err
 		}

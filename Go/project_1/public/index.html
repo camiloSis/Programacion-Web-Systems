@@ -7,6 +7,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- ============ LOGIN ============ -->
+  <div id="loginView" class="login-view">
+    <form class="login-card" onsubmit="iniciarSesion(event)">
+      <span class="logo big">M</span>
+      <h1>Mayu</h1>
+      <p class="login-sub">Sistema de Gestión y Reserva de Ambientes Universitarios</p>
+      <label for="loginUsuario">Usuario</label>
+      <input type="text" id="loginUsuario" required autocomplete="username" placeholder="Tu usuario">
+      <label for="loginPassword">Contraseña</label>
+      <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Tu contraseña">
+      <div id="loginError" class="login-error" hidden></div>
+      <button type="submit" class="btn primary full">Ingresar</button>
+      <div class="login-hint">
+        <strong>Admin:</strong> admin / admin123<br>
+        <strong>Estudiante:</strong> estudiante / estudiante123
+      </div>
+    </form>
+  </div>
+
+  <!-- ============ APP ============ -->
+  <div id="appView" hidden>
   <header class="app-header">
     <div class="brand">
       <span class="logo">M</span>
@@ -15,20 +36,25 @@
         <p class="subtitle">Sistema de Gestión y Reserva de Ambientes Universitarios</p>
       </div>
     </div>
+    <div class="user-box">
+      <span id="userNombre" class="user-nombre"></span>
+      <span id="userRol" class="chip"></span>
+      <button class="btn ghost small" onclick="cerrarSesion()">Salir</button>
+    </div>
   </header>
 
   <nav class="tabs">
     <button class="tab-btn active" data-tab="ambientes">Ambientes</button>
     <button class="tab-btn" data-tab="disponibilidad">Disponibilidad</button>
     <button class="tab-btn" data-tab="reservas">Reservas</button>
-    <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
+    <button class="tab-btn admin-only" data-tab="estadisticas" hidden>Estadísticas</button>
   </nav>
 
   <main class="container">
 
     <!-- ============ AMBIENTES ============ -->
     <section id="tab-ambientes" class="tab active">
-      <div class="card">
+      <div class="card admin-only" id="ambienteFormCard" hidden>
         <h2 id="formAmbienteTitle">Registrar ambiente</h2>
         <form id="ambienteForm" onsubmit="guardarAmbiente(event)">
           <input type="hidden" id="ambienteId">
@@ -126,7 +152,7 @@
             <thead>
               <tr>
                 <th>ID</th><th>Nombre</th><th>Tipo</th><th>Cap.</th>
-                <th>Ubicación</th><th>Recursos</th><th>Estado</th><th>Acciones</th>
+                <th>Ubicación</th><th>Recursos</th><th>Estado</th><th class="admin-only" id="thAccionesAmbiente" hidden>Acciones</th>
               </tr>
             </thead>
             <tbody id="ambientesBody"></tbody>
@@ -251,7 +277,7 @@
       </div>
 
       <div class="card">
-        <h2>Reservas registradas</h2>
+        <h2>Reservas registradas <span id="reservasScope" class="scope-note"></span></h2>
         <div class="table-container">
           <table>
             <thead>
@@ -295,6 +321,7 @@
       </div>
     </section>
   </main>
+  </div>
 
   <div id="toast" class="toast" hidden></div>
 

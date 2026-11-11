@@ -12,6 +12,8 @@ import (
 type API struct {
 	Ambientes *store.AmbienteStore
 	Reservas  *store.ReservaStore
+	Users     *store.UserStore
+	Secreto   []byte
 }
 
 func ok(c *gin.Context, data any) {

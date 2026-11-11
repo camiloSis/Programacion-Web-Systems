@@ -19,10 +19,27 @@ go run .
 - Frontend: http://localhost:3000/
 - API: http://localhost:3000/api/ambientes
 
+> **Importante:** no uses "Open With Live Server" de VS Code. Live Server solo sirve archivos
+> estáticos y no ejecuta la API de Go (por eso aparece un error de servidor inválido).
+> La app completa (frontend + API) se sirve desde `go run .` en la terminal.
+
 Variables opcionales: `PORT` (puerto, por defecto 3000) y `MAYU_DB` (ruta de la base de datos, por defecto `data/mayu.db`).
 
 La base de datos SQLite se crea automáticamente en `data/mayu.db` junto con datos de ejemplo
-(7 ambientes) en el primer arranque.
+(7 ambientes y 2 usuarios) en el primer arranque.
+
+## Roles y acceso
+
+| Usuario | Contraseña | Rol | Permisos |
+|---|---|---|---|
+| `admin` | `admin123` | Administrador | CRUD de ambientes, ve todas las reservas, estadísticas |
+| `estudiante` | `estudiante123` | Estudiante | Consulta ambientes (solo lectura), reserva y gestiona solo las suyas |
+
+- Sesión mediante **cookie HttpOnly firmada (HMAC-SHA256)**, válida 7 días; contraseñas con **bcrypt**.
+- Las contraseñas se guardan hasheadas en la BD (`users`).
+- Un estudiante siempre reserva con **su propio código** y no puede ver, modificar ni cancelar
+  reservas de otros (403).
+- Todos los endpoints (excepto `login`) devuelven **401** sin sesión y **403** si el rol no alcanza.
 
 ## Estructura del proyecto
 
@@ -49,15 +66,26 @@ Formato de respuesta:
 { "status": "fail", "message": "..." }
 ```
 
-### Ambientes
+Todos requieren sesión (cookie `mayu_session`), salvo `login` y `logout`.
+**A** = solo admin.
+
+### Autenticación
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/ambientes` | Listar (filtros: `q`, `tipo`, `estado`, `capacidad_min`, `edificio`) |
-| GET | `/api/ambientes/:id` | Obtener uno por ID |
-| POST | `/api/ambientes` | Registrar ambiente |
-| PUT | `/api/ambientes/:id` | Actualizar ambiente |
-| DELETE | `/api/ambientes/:id` | Eliminar (bloquea si tiene reservas activas) |
+| POST | `/api/auth/login` | `{usuario, password}` → crea la sesión |
+| POST | `/api/auth/logout` | Elimina la sesión |
+| GET | `/api/auth/me` | Usuario actual (401 si no hay sesión) |
+
+### Ambientes
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/api/ambientes` | todos | Listar (filtros: `q`, `tipo`, `estado`, `capacidad_min`, `edificio`) |
+| GET | `/api/ambientes/:id` | todos | Obtener uno por ID |
+| POST | `/api/ambientes` | **A** | Registrar ambiente |
+| PUT | `/api/ambientes/:id` | **A** | Actualizar ambiente |
+| DELETE | `/api/ambientes/:id` | **A** | Eliminar (bloquea si tiene reservas activas) |
 
 ### Disponibilidad
 
@@ -69,17 +97,17 @@ Formato de respuesta:
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/reservas` | Listar (filtros: `fecha`, `ambiente_id`, `estado`, `codigo`) |
+| GET | `/api/reservas` | Listar (filtros: `fecha`, `ambiente_id`, `estado`, `codigo`). El estudiante solo ve las suyas |
 | GET | `/api/reservas/:id` | Obtener una por ID |
-| POST | `/api/reservas` | Registrar reserva (valida solapamiento) |
-| PUT | `/api/reservas/:id` | Modificar reserva |
-| PATCH | `/api/reservas/:id/cancelar` | Cancelar reserva |
+| POST | `/api/reservas` | Registrar (el estudiante queda asociado a su código) |
+| PUT | `/api/reservas/:id` | Modificar (solo dueño o admin) |
+| PATCH | `/api/reservas/:id/cancelar` | Cancelar (solo dueño o admin) |
 
 ### Estadísticas
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/estadisticas` | Totales, ambientes por tipo, uso (horas) y reservas por fecha |
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/api/estadisticas` | **A** | Totales, ambientes por tipo, uso (horas) y reservas por fecha |
 
 ## Reglas de negocio
 
@@ -94,14 +122,19 @@ Formato de respuesta:
 ## Ejemplo con curl
 
 ```bash
+# Iniciar sesión (guarda la cookie en el archivo jar)
+curl -c jar.txt -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"usuario":"admin","password":"admin123"}'
+
 # Listar laboratorios con capacidad mínima 25
-curl "http://localhost:3000/api/ambientes?tipo=laboratorio&capacidad_min=25"
+curl -b jar.txt "http://localhost:3000/api/ambientes?tipo=laboratorio&capacidad_min=25"
 
 # Consultar disponibilidad
-curl "http://localhost:3000/api/disponibilidad?fecha=2026-11-20&hora_inicio=08:00&hora_fin=10:00"
+curl -b jar.txt "http://localhost:3000/api/disponibilidad?fecha=2026-11-20&hora_inicio=08:00&hora_fin=10:00"
 
 # Registrar una reserva
-curl -X POST http://localhost:3000/api/reservas \
+curl -b jar.txt -X POST http://localhost:3000/api/reservas \
   -H "Content-Type: application/json" \
   -d '{"ambiente_id":1,"estudiante":"Ana Torres","codigo":"202412345","fecha":"2026-11-20","hora_inicio":"08:00","hora_fin":"10:00","motivo":"Clase"}'
 ```
