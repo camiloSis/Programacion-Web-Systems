@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mayu - Gestión y Reserva de Ambientes Universitarios</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">M</span>
+      <div>
+        <h1>Mayu</h1>
+        <p class="subtitle">Sistema de Gestión y Reserva de Ambientes Universitarios</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="ambientes">Ambientes</button>
+    <button class="tab-btn" data-tab="disponibilidad">Disponibilidad</button>
+    <button class="tab-btn" data-tab="reservas">Reservas</button>
+    <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- ============ AMBIENTES ============ -->
+    <section id="tab-ambientes" class="tab active">
+      <div class="card">
+        <h2 id="formAmbienteTitle">Registrar ambiente</h2>
+        <form id="ambienteForm" onsubmit="guardarAmbiente(event)">
+          <input type="hidden" id="ambienteId">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="aNombre">Nombre *</label>
+              <input type="text" id="aNombre" required maxlength="100" placeholder="Ej: Aula A-101">
+            </div>
+            <div class="form-group">
+              <label for="aTipo">Tipo *</label>
+              <select id="aTipo" required>
+                <option value="aula">Aula</option>
+                <option value="laboratorio">Laboratorio</option>
+                <option value="sala_estudio">Sala de estudio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="aCapacidad">Capacidad *</label>
+              <input type="number" id="aCapacidad" required min="1" max="500" placeholder="Ej: 40">
+            </div>
+            <div class="form-group">
+              <label for="aEdificio">Edificio *</label>
+              <input type="text" id="aEdificio" required maxlength="60" placeholder="Ej: Edificio A">
+            </div>
+            <div class="form-group">
+              <label for="aPiso">Piso</label>
+              <input type="number" id="aPiso" min="0" max="50" value="1">
+            </div>
+            <div class="form-group">
+              <label for="aEstado">Estado</label>
+              <select id="aEstado">
+                <option value="disponible">Disponible</option>
+                <option value="mantenimiento">Mantenimiento</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="aRecursos">Recursos</label>
+              <input type="text" id="aRecursos" maxlength="300" placeholder="Ej: Proyector, Pizarra, PCs">
+            </div>
+            <div class="form-group full">
+              <label for="aDescripcion">Descripción</label>
+              <textarea id="aDescripcion" maxlength="300" rows="2" placeholder="Descripción breve del ambiente"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Guardar</button>
+            <button type="button" class="btn ghost" id="btnCancelarAmbiente" onclick="resetFormAmbiente()" hidden>Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Buscar y filtrar</h2>
+        <div class="filters">
+          <div class="form-group">
+            <label for="fBuscar">Búsqueda libre</label>
+            <input type="text" id="fBuscar" placeholder="Nombre, edificio, recursos...">
+          </div>
+          <div class="form-group">
+            <label for="fTipo">Tipo</label>
+            <select id="fTipo">
+              <option value="">Todos</option>
+              <option value="aula">Aula</option>
+              <option value="laboratorio">Laboratorio</option>
+              <option value="sala_estudio">Sala de estudio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fEstado">Estado</label>
+            <select id="fEstado">
+              <option value="">Todos</option>
+              <option value="disponible">Disponible</option>
+              <option value="mantenimiento">Mantenimiento</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fCapacidad">Cap. mínima</label>
+            <input type="number" id="fCapacidad" min="1" placeholder="Ej: 30">
+          </div>
+          <div class="form-group">
+            <label for="fEdificio">Edificio</label>
+            <input type="text" id="fEdificio" placeholder="Ej: Edificio B">
+          </div>
+          <div class="filter-buttons">
+            <button class="btn primary" onclick="cargarAmbientes()">Filtrar</button>
+            <button class="btn ghost" onclick="limpiarFiltrosAmbientes()">Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ambientes registrados</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Tipo</th><th>Cap.</th>
+                <th>Ubicación</th><th>Recursos</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="ambientesBody"></tbody>
+          </table>
+        </div>
+        <div id="ambientesEmpty" class="empty" hidden>No se encontraron ambientes</div>
+      </div>
+    </section>
+
+    <!-- ============ DISPONIBILIDAD ============ -->
+    <section id="tab-disponibilidad" class="tab">
+      <div class="card">
+        <h2>Consultar ambientes disponibles</h2>
+        <form onsubmit="consultarDisponibilidad(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="dFecha">Fecha *</label>
+              <input type="date" id="dFecha" required>
+            </div>
+            <div class="form-group">
+              <label for="dInicio">Hora inicio *</label>
+              <input type="time" id="dInicio" required value="08:00" min="06:00" max="21:30">
+            </div>
+            <div class="form-group">
+              <label for="dFin">Hora fin *</label>
+              <input type="time" id="dFin" required value="10:00" min="06:30" max="22:00">
+            </div>
+            <div class="form-group">
+              <label for="dTipo">Tipo</label>
+              <select id="dTipo">
+                <option value="">Todos</option>
+                <option value="aula">Aula</option>
+                <option value="laboratorio">Laboratorio</option>
+                <option value="sala_estudio">Sala de estudio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dCapacidad">Cap. mínima</label>
+              <input type="number" id="dCapacidad" min="1" placeholder="Ej: 30">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Consultar disponibilidad</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Resultados</h2>
+        <div id="disponiblesGrid" class="grid"></div>
+        <div id="disponiblesEmpty" class="empty" hidden>No hay ambientes disponibles para ese horario</div>
+      </div>
+    </section>
+
+    <!-- ============ RESERVAS ============ -->
+    <section id="tab-reservas" class="tab">
+      <div class="card">
+        <h2 id="formReservaTitle">Registrar reserva</h2>
+        <form id="reservaForm" onsubmit="guardarReserva(event)">
+          <input type="hidden" id="reservaId">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="rAmbiente">Ambiente *</label>
+              <select id="rAmbiente" required></select>
+            </div>
+            <div class="form-group">
+              <label for="rEstudiante">Estudiante *</label>
+              <input type="text" id="rEstudiante" required minlength="3" maxlength="80" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+              <label for="rCodigo">Código *</label>
+              <input type="text" id="rCodigo" required maxlength="20" placeholder="Ej: 202412345">
+            </div>
+            <div class="form-group">
+              <label for="rFecha">Fecha *</label>
+              <input type="date" id="rFecha" required>
+            </div>
+            <div class="form-group">
+              <label for="rInicio">Hora inicio *</label>
+              <input type="time" id="rInicio" required value="08:00" min="06:00" max="21:30">
+            </div>
+            <div class="form-group">
+              <label for="rFin">Hora fin *</label>
+              <input type="time" id="rFin" required value="10:00" min="06:30" max="22:00">
+            </div>
+            <div class="form-group full">
+              <label for="rMotivo">Motivo</label>
+              <input type="text" id="rMotivo" maxlength="200" placeholder="Ej: Clase de programación">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Guardar reserva</button>
+            <button type="button" class="btn ghost" id="btnCancelarReserva" onclick="resetFormReserva()" hidden>Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Filtrar reservas</h2>
+        <div class="filters">
+          <div class="form-group">
+            <label for="gFecha">Fecha</label>
+            <input type="date" id="gFecha">
+          </div>
+          <div class="form-group">
+            <label for="gEstado">Estado</label>
+            <select id="gEstado">
+              <option value="">Todos</option>
+              <option value="activa">Activa</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="gCodigo">Código estudiante</label>
+            <input type="text" id="gCodigo" placeholder="Ej: 202412345">
+          </div>
+          <div class="filter-buttons">
+            <button class="btn primary" onclick="cargarReservas()">Filtrar</button>
+            <button class="btn ghost" onclick="limpiarFiltrosReservas()">Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Reservas registradas</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Ambiente</th><th>Estudiante</th><th>Código</th>
+                <th>Fecha</th><th>Horario</th><th>Motivo</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="reservasBody"></tbody>
+          </table>
+        </div>
+        <div id="reservasEmpty" class="empty" hidden>No se encontraron reservas</div>
+      </div>
+    </section>
+
+    <!-- ============ ESTADÍSTICAS ============ -->
+    <section id="tab-estadisticas" class="tab">
+      <div id="statCards" class="stat-cards"></div>
+
+      <div class="card">
+        <h2>Ambientes por tipo</h2>
+        <div id="tipoBars" class="bars"></div>
+        <div id="tipoEmpty" class="empty" hidden>Sin datos</div>
+      </div>
+
+      <div class="card">
+        <h2>Uso de ambientes (horas reservadas)</h2>
+        <div id="usoBars" class="bars"></div>
+        <div id="usoEmpty" class="empty" hidden>Sin datos</div>
+      </div>
+
+      <div class="card">
+        <h2>Reservas activas por fecha</h2>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Fecha</th><th>Reservas activas</th></tr></thead>
+            <tbody id="fechasBody"></tbody>
+          </table>
+        </div>
+        <div id="fechasEmpty" class="empty" hidden>Sin reservas registradas</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
